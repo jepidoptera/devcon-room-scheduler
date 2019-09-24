@@ -58,10 +58,10 @@ router.get("/admin", (req, res) => {
         .then(timeslots => {
             timeslots = timeslots.map(slot => {
                 return {
-                    start: timeFormat(slot.start),
                     index: slot.index,
+                    start: timeFormat(slot.start),
                     owner: slot.owner,
-                    description: description
+                    description: slot.description
                 }
             });
             // console.log(timeslots);
@@ -71,6 +71,12 @@ router.get("/admin", (req, res) => {
         })
         .catch(err => res.status(422).json(err));
 })
+
+// router.get("/reset", (req, res) => {
+//     // reset database
+//     require("../scripts/seedDB");
+//     res.send("reset complete ;)");
+// })
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
