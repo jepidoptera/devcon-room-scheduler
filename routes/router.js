@@ -75,6 +75,7 @@ router.get("/admin", (req, res) => {
 router.get("/reset", () => {
     // reset database
     require("../scripts/seedDB");
+    res.send("reset complete ;)");
 })
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
