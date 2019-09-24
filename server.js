@@ -1,30 +1,38 @@
-import express from "express";
-import routes from "./routes/routes";
-
-const mongoose = require("mongoose");
-const app = express();
+const express =  require("express");
 const path = require('path');
+
+const router = require('./routes/router');
+
+const app = express();
 const PORT = process.env.PORT || 3001;
+
 
 // middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
-app.use("/", routes);
+app.use(router);
 
 console.log("node env =", process.env.NODE_ENV);
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, 'client/build')));
 }
 
-mongoose.connect(
-    process.env.MONGODB_URI ||
-    "mongodb://localhost/roomtimes",
-    {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
+// use handlebars
+var exphbs = require("express-handlebars");
+app.engine(".hbs", exphbs({
+    defaultLayout: "main",
+    extname: ".hbs",
+    helpers: {
+    // capitalize words on request
+        'Capitalize': function(string)
+        {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
     }
-);
+}));
+app.set("view engine", ".hbs");
+
 
 // Start the server
 app.listen(PORT, function() {
