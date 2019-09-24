@@ -72,7 +72,7 @@ router.get("/admin", (req, res) => {
         .catch(err => res.status(422).json(err));
 })
 
-router.get("/reset", () => {
+router.get("/reset", (req, res) => {
     // reset database
     require("../scripts/seedDB");
     res.send("reset complete ;)");
