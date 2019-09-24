@@ -1,3 +1,5 @@
+<div>
+<h1>administrator view <button onclick="window.location.href='/'">log out</button></h1>
 <table>
     <tr>
         <th>Time</th>
@@ -22,7 +24,10 @@
                 </td>
                 <td></td>
             {{/unless}}
-            <td></td>
+            <td>
+                <button onclick='window.location.href="/admin/edit/{{index}}"'>edit</button>
+            </td>
         </tr>
     {{/each}}
 </table>
+</div>

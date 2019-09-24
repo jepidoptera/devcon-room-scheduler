@@ -46,7 +46,7 @@ router.post('/signup/:index', (req, res) => {
     .findOneAndUpdate({ index: req.params.index }, req.body)
     .then(dbModel => {
         console.log(JSON.stringify(dbModel));
-        res.render("success", {});
+        res.render("success", {text: "submitted successfully - redirecting...", redirect: "/"});
     })
     .catch(err => res.status(422).json(err));
 })
@@ -71,6 +71,38 @@ router.get("/admin", (req, res) => {
         })
         .catch(err => res.status(422).json(err));
 })
+
+router.get("/admin/login", (req, res) => {
+    // we will make this very easy for now
+    res.render("login", {});
+})
+
+router.post("/admin/login", (req, res) => {
+    // we will make this very easy for now
+    res.render("success", {text: "that password definitely checks out!", redirect: "/admin"});
+})
+
+router.get("/admin/edit/:index", (req, res) => {
+    db.TimeSlot
+        .findOne({index: req.params.index})
+        .then(slot => {
+            console.log("admin editing slot: ", slot);
+            res.render("edit", slot);
+        })
+        .catch(err => res.status(422).json(err))
+})
+
+router.post('/admin/edit/:index', (req, res) => {
+    console.log(req.body);
+    db.TimeSlot
+    .findOneAndUpdate({ index: req.params.index }, req.body)
+    .then(dbModel => {
+        console.log(JSON.stringify(dbModel));
+        res.render("success", {text: "updated successfully - redirecting...", redirect: "/admin"});
+    })
+    .catch(err => res.status(422).json(err));
+})
+
 
 // router.get("/reset", (req, res) => {
 //     // reset database

@@ -1,0 +1,28 @@
+<form action="/admin/edit/{{index}}" method="post">
+    <table style="border: 0">
+        <tr>
+            <td>Owner: </td> <td> <input type="text" name="owner" value="{{owner}}"></td>
+        </tr>
+        <tr>
+            <td>Description:</td>
+            <td> <textarea type="text" name="description" style="height: 100px; width: 200px">{{description}}
+                </textarea>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <button id="cancel">cancel</button>
+                <button type="submit">update</button>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<script>
+    document.getElementById('cancel').addEventListener('click', (event) => {
+        // do nothing
+        event.preventDefault();
+        window.location.href = '/admin';
+    })
+</script>
