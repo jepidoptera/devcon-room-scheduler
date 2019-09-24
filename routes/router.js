@@ -51,6 +51,32 @@ router.post('/signup/:index', (req, res) => {
     .catch(err => res.status(422).json(err));
 })
 
+router.get("/admin", (req, res) => {
+    db.TimeSlot
+        .find({})
+        .sort({ index: 1 })
+        .then(timeslots => {
+            timeslots = timeslots.map(slot => {
+                return {
+                    start: timeFormat(slot.start),
+                    index: slot.index,
+                    owner: slot.owner,
+                    description: description
+                }
+            });
+            // console.log(timeslots);
+            res.render("admin", {
+                timeslots: timeslots
+            })
+        })
+        .catch(err => res.status(422).json(err));
+})
+
+router.get("/reset", () => {
+    // reset database
+    require("../scripts/seedDB");
+})
+
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function timeFormat(date) {

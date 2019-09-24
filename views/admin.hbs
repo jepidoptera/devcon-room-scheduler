@@ -1,0 +1,27 @@
+<table>
+    <tr>
+        <th>Time</th>
+        <th>Claimed By</th>
+        <th>Description</th>
+        <th>Edit</th>
+    </tr>
+    {{#each timeslots}}
+        <tr>
+            <td>{{start}}</td>
+            {{#if owner}}
+                <td>
+                    {{owner}}
+                </td>
+                <td>
+                    {{description}}
+                </td>
+            {{/if}}
+            {{#unless owner}}
+                <td>
+                    UNCLAIMED
+                </td>
+                <td></td>
+            {{/unless}}
+        </tr>
+    {{/each}}
+</table>
