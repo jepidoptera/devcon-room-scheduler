@@ -5,7 +5,7 @@ const timeslotSchema = new mongoose.Schema({
     start: { type: Date, required: true },
     end: { type: Date, required: true },
     owner: { type: String, required: false },
-    description: [{ type: String, required: false }],
+    description: { type: String, required: false },
 });
 
 const Timeslot = mongoose.model("TimeSlot", timeslotSchema);
