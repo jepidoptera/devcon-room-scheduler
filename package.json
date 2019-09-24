@@ -1,0 +1,26 @@
+{
+  "name": "devcon-room-scheduler",
+  "version": "1.0.0",
+  "description": "scheduling conference rooms for devcon",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.7.1",
+    "node-scrypt": "0.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test",
+    "seed": "node scripts/seedDB.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jepidoptera/devcon-room-scheduler.git"
+  },
+  "author": "Peter Allen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jepidoptera/devcon-room-scheduler/issues"
+  },
+  "homepage": "https://github.com/jepidoptera/devcon-room-scheduler#readme"
+}
