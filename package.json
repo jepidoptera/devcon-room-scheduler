@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "scheduling conference rooms for devcon",
   "main": "server.js",
+  "proxy": "http://localhost:3001",
   "dependencies": {
     "express": "^4.17.1",
     "handlebars": "^4.3.0",
