@@ -5,13 +5,30 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.17.1",
+    "handlebars": "^4.3.0",
     "mongoose": "^5.7.1",
-    "node-scrypt": "0.0.1"
+    "node-scrypt": "0.0.1",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.6.2",
+    "@babel/node": "^7.6.2",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/polyfill": "^7.6.0",
+    "@babel/preset-env": "^7.6.2",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.6",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
+  },
   "scripts": {
     "test": "test",
-    "seed": "node scripts/seedDB.js"
+    "seed": "node scripts/seedDB.js",
+    "dev": "nodemon --exec babel-node server.js",
+    "webpack": "webpack -wd"
   },
   "repository": {
     "type": "git",
