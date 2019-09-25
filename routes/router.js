@@ -1,6 +1,9 @@
 const express =  require("express");
 const mongoose = require('mongoose');
+
 const db = require("../models");
+const airTable = require('../scripts/airtableAPI');
+
 const router = express.Router();
 
 mongoose.connect(
@@ -103,6 +106,21 @@ router.post('/admin/edit/:index', (req, res) => {
     .catch(err => res.status(422).json(err));
 })
 
+router.get('/admin/talks', (req, res) => {
+    console.log('retrieving talks...');
+    airTable.getTalks((talks) => {
+        res.render("talks", {talks: talks.map(talk => {
+            let start = new Date(talk.start_at);
+            let end = new Date(talk.end_at);
+            return {
+                ...talk,
+                time:  `${daysOfWeek[start.getDay()]}, 
+                ${start.getHours()}:${start.getMinutes().toString().padEnd(2, "0")} -
+                ${end.getHours()}:${end.getMinutes().toString().padEnd(2, "0")}`        
+            }
+        })});
+    });
+})
 
 // router.get("/reset", (req, res) => {
 //     // reset database
