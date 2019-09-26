@@ -37,7 +37,6 @@ router.get('/', (req, res) => {
         })
         .catch(err => res.status(422).json(err));
 })
-
 router.get('/signup/:index', (req, res) => {
     console.log(req);
     res.render('signup', {index: req.params.index})
@@ -120,6 +119,28 @@ router.get('/admin/talks', (req, res) => {
             }
         })});
     });
+})
+
+router.get('/amphitheater', (req, res) => {
+    console.log('retrieving talks for amphitheater...');
+    let talks = airTable.getFromRoom("Amphitheater")
+    res.render("amphitheater", {talks: talks.map(talk => {
+        let start = new Date(talk.start_at);
+        let end = new Date(talk.end_at);
+
+        return {
+            ...talk,
+            // converting to UTC so javascript won't fuck with it
+            // sorry this looks horrible. timezones are annoying
+            start_at: `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2,"0")}-${start.getDate().toString().padStart(2,"0")}T${start.getHours().toString().padStart(2,"0")}:${start.getMinutes().toString().padStart(2,"0")}Z`,
+            end_at: `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2,"0")}-${end.getDate().toString().padStart(2,"0")}T${end.getHours().toString().padStart(2,"0")}:${end.getMinutes().toString().padStart(2,"0")}Z`
+        }
+    })});
+})
+
+router.post('/reserve/amphitheater', (req, res) => {
+    // console.log(JSON.stringify(req.body));
+    res.render("success", {text: "Thank you for your submission.  You'll receive a confirmation email shortly.", redirect: "/amphitheater"})
 })
 
 // router.get("/reset", (req, res) => {

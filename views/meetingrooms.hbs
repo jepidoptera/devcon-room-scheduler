@@ -1,0 +1,22 @@
+<h1>time slot sign up <button onclick="window.location.href='/admin/login'">admin login</button></h1>
+<table>
+    <tr>
+        <th>Time</th>
+        <th>Availability</th>
+    </tr>
+    {{#each timeslots}}
+        <tr>
+            <td>{{start}}</td>
+            <td>
+                {{#if owner}}
+                    CLAIMED
+                {{/if}}
+                {{#unless owner}}
+                    <button onclick = "window.location.href = '/signup/{{index}}'">
+                        open - click here to claim
+                    </button>
+                {{/unless}}
+            </td>
+        </tr>
+    {{/each}}
+</table>

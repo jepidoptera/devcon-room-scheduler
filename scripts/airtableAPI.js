@@ -3,6 +3,7 @@ var base = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_
 
 let rooms = {};
 let speakers = {};
+let talks = [];
 
 function getRooms() {
     base('Rooms').select({})
@@ -12,9 +13,9 @@ function getRooms() {
         // console.log(JSON.stringify(records));
 
         records.forEach(function(record) {
-            // console.log("*****");
-            // console.log(JSON.stringify(record));
+            // cross-reference these things
             rooms[record.id] = {name: record.get("Name")};
+            rooms[record.get("Name")] = {id: record.id};
         });
     
         // To fetch the next page of records, call `fetchNextPage`.
@@ -67,7 +68,7 @@ getSpeakers();
 const API = {
     getTalks: (callback) => {
         let pages = 1;
-        let talks = [];
+        let newTalks = [];
 
         base('Talks').select({})
         .eachPage(function page(records, fetchNextPage) {
@@ -91,7 +92,7 @@ const API = {
                             }
                         }
                     }
-                    talks.push({
+                    newTalks.push({
                         name: record.get('Name (english)'), 
                         start_at: record.get('Start at'), 
                         end_at: record.get('End at'), 
@@ -111,6 +112,8 @@ const API = {
         
         }, function done(err) {
             console.log('done.');
+            talks = newTalks;
+
             if (err) { console.error(err); return; }
             if (callback) {
                 console.log('returning talks to server...')
@@ -120,7 +123,34 @@ const API = {
                 console.log('no callback provided.');
             }
         });    
+    },
+    
+    // get all talks occurring in a particular room
+    getFromRoom: (roomName) => {
+        return talks.filter(talk => talk.room === roomName);
+    },
+
+    schedule: (name, start_at, end_at, description, speakers, room) => {
+        base('Talks').create([
+            {
+              "fields": {
+                "Name (english)": name,
+                "Start at": start_at,
+                "End at": end_at,
+                "Room": [
+                  "recTWQFxdpL6FkBvF"
+                ],
+                "Speakers": [
+                  "rec2XNII5AMAEU0Os",
+                  "recZF6KYxkljg8UL8"
+                ]
+              }
+            }
+        ])
     }
 }
 
+API.getTalks();
+// just keep updating in the background every ten seconds
+setInterval(API.getTalks, 10000);
 module.exports = API;
