@@ -97,8 +97,8 @@
             let start = new Date(timeSlots[i].start_at);
             let end = new Date(timeSlots[i].end_at);
             let timestring = `${daysOfWeek[start.getUTCDay()]}, 
-                ${start.getUTCHours()}:${start.getUTCMinutes().toString().padEnd(2, "0")} -
-                ${end.getUTCHours()}:${end.getUTCMinutes().toString().padEnd(2, "0")}`
+                ${start.getUTCHours()}:${start.getUTCMinutes().toString().padStart(2, "0")} -
+                ${end.getUTCHours()}:${end.getUTCMinutes().toString().padStart(2, "0")}`
             
             $("#timeslots").append(
                 $("<tr>").append(
