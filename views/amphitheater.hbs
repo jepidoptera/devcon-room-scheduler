@@ -11,11 +11,11 @@
 <div class="modalBox">
     <div class="modalBoxTitle">Reserve Your Spot</div>
     <form action="/reserve/amphitheater" method="POST">
-        talk name: <br> <input type="text" name = "Name" required><br>
-        description: <br> <input type="text" name = "Description"><br>
+        talk name: <br> <input type="text" name = "name" required><br>
+        description: <br> <input type="text" name = "description"><br>
         speaker(s): (separate names with commas)<br>
-        <input type="text" name="Speakers"> <br>
-        email: <br> <input type="email" name="Email" required><br>
+        <input type="text" name="speakers" required> <br>
+        email: <br> <input type="email" name="email" required><br>
         <div style="width: 100%; height: 20pt; display: block; position: relative;">
             start: 
             <span class="numberInput">
@@ -26,6 +26,7 @@
                 </sapn>
             </span>
         </div> <br>
+        <input type="text" style="display:none" name="start_at">
         talk length:
         <select name="length">
             <option value="5">5</option>
@@ -40,7 +41,15 @@
 <script>
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    let talks = [ {{#each talks}} {name: '{{name}}', time: '{{time}}', description: '{{description}}', room: '{{room}}', start_at: '{{start_at}}', end_at: '{{end_at}}' }, {{/each}}]
+    let talks = [ {{#each talks}} {
+        name: '{{name}}', 
+        time: '{{time}}', 
+        description: '{{description}}', 
+        room: '{{room}}', 
+        start_at: '{{start_at}}', 
+        end_at: '{{end_at}}', 
+        speakers: [ {{#each speakers }}{{#if @index}},{{/if}} "{{name}}" {{/each}}] 
+    }, {{/each}}]
     // this array will include both scheduled talks and open slots between them
     let timeSlots = [];
 
@@ -96,7 +105,7 @@
                     $("<td>").html(timeSlots[i].name || `<button style='color: red' onclick='bookSlot(${i})'>AVAILABLE - click to reserve</span>`),
                     $("<td>").html(timestring),
                     $("<td>").html(timeSlots[i].description || ""),
-                    $("<td>").html(timeSlots[i].speakers || "")
+                    $("<td>").html(timeSlots[i].speakers ? timeSlots[i].speakers.join(', ') : "")
                 )
             )
         }
@@ -122,6 +131,7 @@
         const updateTime = function() {
             let time = new Date(currentTime);
             $('#startTime').text(time.getUTCHours() + ":" + time.getUTCMinutes().toString().padStart(2, "0"));
+            $('input[name="start_at"]').val(currentTime);
         }
 
         const changeTalkLength = function(event) {
