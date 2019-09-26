@@ -144,8 +144,8 @@ router.post('/reserve/amphitheater', (req, res) => {
     airTable.schedule({
         ...req.body,
         // turn them into correct data types
-        start_at: new Date(parseInt(req.body.start_at) + 18000000).toISOString(),
-        end_at: new Date(parseInt(req.body.start_at) + 18000000 + parseInt(req.body.length) * 60000).toISOString(),
+        start_at: new Date(parseInt(req.body.start_at) + new Date().getTimezoneOffset() * 60000).toISOString(),
+        end_at: new Date(parseInt(req.body.start_at) + (new Date().getTimezoneOffset() + parseInt(req.body.length)) * 60000).toISOString(),
         speakers: req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase()),
         room: "Amphitheater"
     });
