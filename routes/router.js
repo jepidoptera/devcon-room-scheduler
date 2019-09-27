@@ -122,22 +122,49 @@ router.get('/admin/talks', (req, res) => {
 })
 
 router.get('/amphitheater', (req, res) => {
-    console.log('retrieving talks for amphitheater...');
-    let talks = airTable.getFromRoom("Amphitheater")
-    res.render("amphitheater", {talks: talks.map(talk => {
-        let start = new Date(talk.start_at);
-        let end = new Date(talk.end_at);
+    console.log('retrieving sheduler page...');
+    let talks = airTable.getFromRoom("Amphitheater");
+    res.render("scheduler", {
+        title: "Amphitheater Lightning Talks",
+        bookings: talks.map(talk => {
 
-        return {
-            ...talk,
-            // converting to UTC so javascript won't fuck with it
-            // sorry this looks horrible. timezones are annoying
-            // start_at: `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2,"0")}-${start.getDate().toString().padStart(2,"0")}T${start.getHours().toString().padStart(2,"0")}:${start.getMinutes().toString().padStart(2,"0")}Z`,
-            // end_at: `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2,"0")}-${end.getDate().toString().padStart(2,"0")}T${end.getHours().toString().padStart(2,"0")}:${end.getMinutes().toString().padStart(2,"0")}Z`,
-            speakers: talk.speakers.map(speaker => {return {name: speaker}})
-        }
-    })});
+            return {
+                ...talk,
+                speakers: talk.speakers.map(speaker => {return {name: speaker}})
+            }
+        }),
+        first_day: "10-08",
+        last_day: "10-11",
+        first_talk: "10:00",
+        last_talk: "17:00",
+        headings: [
+            {name:"name", width: 20},
+            {name:"time", width: 20},
+            {name:"description", width: 40},
+            {name:"speakers", width: 20}
+        ],
+        time_increment: 5,
+        max_consecutive_slots: 2
+    });
 })
+
+// router.get('/amphitheater', (req, res) => {
+//     console.log('retrieving talks for amphitheater...');
+//     let talks = airTable.getFromRoom("Amphitheater");
+//     res.render("amphitheater", {talks: talks.map(talk => {
+//         // let start = new Date(talk.start_at);
+//         // let end = new Date(talk.end_at);
+
+//         return {
+//             ...talk,
+//             // converting to UTC so javascript won't fuck with it
+//             // sorry this looks horrible. timezones are annoying
+//             // start_at: `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2,"0")}-${start.getDate().toString().padStart(2,"0")}T${start.getHours().toString().padStart(2,"0")}:${start.getMinutes().toString().padStart(2,"0")}Z`,
+//             // end_at: `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2,"0")}-${end.getDate().toString().padStart(2,"0")}T${end.getHours().toString().padStart(2,"0")}:${end.getMinutes().toString().padStart(2,"0")}Z`,
+//             speakers: talk.speakers.map(speaker => {return {name: speaker}})
+//         }
+//     })});
+// })
 
 router.post('/reserve/amphitheater', (req, res) => {
     // console.log(JSON.stringify(req.body));
@@ -149,8 +176,32 @@ router.post('/reserve/amphitheater', (req, res) => {
         speakers: req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase()),
         room: "Amphitheater"
     });
+
+    // TODO: send confirmation email (purpose TBD)
+    let email = req.body.email;
+
     res.render("success", {text: "Thank you for your submission.  You'll receive a confirmation email shortly.", redirect: "/amphitheater"})
 })
+
+router.get("/meetings", (req, res) => {
+    let meetings = airTable.getFromRoom("Meeting Room 1")
+        .concat(airTable.getFromRoom("Meeting Room 2"));
+        console.log(meetings);
+        res.render("scheduler", {
+            title: "Meeting Rooms",
+            bookings: meetings.map(meeting => {return {...meeting, name: "occupied"}}),
+            first_day: "10-08",
+            last_day: "10-11",
+            first_talk: "08:30",
+            last_talk: "18:00",
+            headings: [
+                {name:"status", width: 50},
+                {name:"time", width: 50},
+            ],
+            time_increment: 30,
+            max_consecutive_slots: 2
+        });
+    })
 
 // router.get("/reset", (req, res) => {
 //     // reset database
