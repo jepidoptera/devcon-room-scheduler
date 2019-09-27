@@ -1,0 +1,230 @@
+<h1>{{title}}</h1>
+<div id="tabs"></div>
+<div id="tables"></div>
+{{!-- <table id="timeslots">
+    <tr>
+        <th>Name</th>
+        <th>Time</th>
+        <th>Description</th>
+        <th>Speakers</th>
+    </tr>
+</table> --}}
+
+<script>
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        let firstDay = "{{first_day}}";
+        let lastDay = "{{last_day}}";
+        let firstTalk = "{{first_talk}}";
+        let lastTalk = "{{last_talk}}";
+
+    let bookings = [ {{#each bookings}} {
+        name: '{{name}}', 
+        description: '{{description}}', 
+        room: '{{room}}', 
+        start_at: '{{start_at}}', 
+        end_at: '{{end_at}}', 
+        speakers: [ {{#each speakers}}{{#if @index}},{{/if}} "{{name}}" {{/each}}] 
+    }, {{/each}}];
+
+    let headings = [{{#each headings}}
+        { name: "{{Capitalize name}}", width: {{width}} },
+    {{/each}}]
+
+    time_increment = {{time_increment}};
+    length_options = Array({{max_consecutive_slots}}).fill(0).map((value, i) => (i + 1) * time_increment);
+
+    console.log(bookings);
+    bookings = bookings
+        .sort((a, b) => new Date(a.start_at).getTime() < new Date(b.start_at).getTime() ? -1 : 1)
+        // ignore bookings which take place outside of regular hours
+        .filter(time => new Date(time.start_at).getUTCHours() < parseInt(lastTalk) 
+            || new Date(time.start_at).getUTCHours() == parseInt(lastTalk)
+            && new Date(time.start_at).getUTCMinutes() <= parseInt(lastTalk.slice(3)));
+    // this array will include both scheduled bookings and open slots between them
+    let timeSlots = [];
+
+    $(() => {
+        $(".modalBox").hide();
+
+        // push a final "talk" to cap off the end of the conference
+        bookings.push({start_at: `2019-${lastDay}T${lastTalk}:00Z`})
+
+        let time = new Date(`2019-${firstDay}T${firstTalk}:00Z`);
+
+        // find blocks of time that aren't booked yet
+        for (let i = 0; i < bookings.length; i++) {
+            while (time.getUTCDate() !== new Date(bookings[i].start_at).getUTCDate()) {
+                // if the next talk isn't til the next day, we have to break up this time slot
+                if (time.getUTCHours() < parseInt(lastTalk)) {
+                    timeSlots.push({
+                        start_at: time.toISOString(), 
+                        end_at: `2019-${(time.getUTCMonth() + 1).toString().padStart(2,"0")}-${time.getUTCDate().toString().padStart(2,"0")}T${lastTalk}:00Z`
+                    })
+                }
+                // start again on the next day
+                time = new Date(time.getTime() + 86400000);
+                // at the beginning of the day, that is...
+                time.setUTCHours(parseInt(firstTalk), parseInt(firstTalk.slice(3)));
+            }
+            if (time.getTime() < new Date(bookings[i].start_at).getTime()) {
+                // push a new slot that starts where the current talk ends
+                timeSlots.push({start_at: time.toISOString(), end_at: bookings[i].start_at})
+            }
+            // and the next slot starts where this talk ends
+            time = new Date(bookings[i].end_at);
+            // push each talk as a filled time slot
+            timeSlots.push({...bookings[i]});
+        }
+        // lose the tail
+        timeSlots.pop();
+
+        // make a tab for each day
+        let dayTables = {};
+        timeSlots.forEach((slot, i) => {
+            let date = new Date(slot.start_at).toDateString().slice(0, -5);
+            if (!dayTables[date]) {
+                // add a table and a tab button for that day
+                dayTables[date] = $("<table>")
+                    .css({"width": "1200px", "max-width": "Calc(100vw - 30px)"})
+                    .attr("id", `timeslots-${date.split(" ").join("_")}`)
+                    .append($("<tr>")
+                        .append(
+                            headings.map(heading => 
+                                {return `<th style='width:${heading.width}%'>${heading.name}</th>`}
+                            ).join('')
+                        )
+                    )
+                
+                dayTables[date].appendTo($("#tables"));
+                if (Object.keys(dayTables).length > 1) dayTables[date].hide();
+                
+                $("#tabs")
+                    .append($("<button>")
+                        .addClass("tabButton")
+                        .text(date)
+                        .click(function() {
+                            $("table").hide();
+                            $(`#timeslots-${date.split(" ").join("_")}`).show();
+                            $(".tabButton").removeClass("bold");
+                            $(this).addClass("bold");
+                        })
+                        .addClass(Object.keys(dayTables).length === 1 ? "bold" : "")
+                    )
+            }
+            dayTables[date].append(
+                $("<tr>").append(
+                    getTableRow(slot, i)
+                )
+            )
+        })
+    })
+
+    function getTableRow(row, index) {
+        // populate tables with readable formatting
+        let htmlString = "";
+        headings.forEach(heading => {
+            if (heading.name === "Name" || heading.name === "Status") {
+                htmlString += "<td>" 
+                    + (row.name || `<button style='color: red' onclick='bookSlot(${index})'>AVAILABLE - click to reserve</span>`) 
+                    + "</td>"
+            }
+            else if (heading.name === "Time") {
+                let start = new Date(row.start_at);
+                let end = new Date(row.end_at);
+                htmlString += `<td>${daysOfWeek[start.getUTCDay()]}, 
+                    ${start.getUTCHours()}:${start.getUTCMinutes().toString().padStart(2, "0")} -
+                    ${end.getUTCHours()}:${end.getUTCMinutes().toString().padStart(2, "0")}</td>`
+            }
+            else if (heading.name === "Description")
+                htmlString += "<td>" + (row.description || "") + "</td>"
+            else if (heading.name ==="Speakers")
+                htmlString += "<td>" + (row.speakers ? row.speakers.join(', ') : "") + "</td>"
+        })
+        return htmlString;
+    }
+</script>
+
+{{!-- note to self: should have used react for all this --}}
+<link rel="stylesheet" href="css/inputBox.css">
+
+<div class="modalBox">
+    <div class="modalBoxTitle">Reserve Your Spot</div>
+    <form action="/reserve/amphitheater" method="POST">
+        talk name: <br> <input type="text" name = "name" required><br>
+        description: <br> <input type="text" name = "description"><br>
+        speaker(s): (separate names with commas)<br>
+        <input type="text" name="speakers" required> <br>
+        email: <br> <input type="email" name="email" required><br>
+        <div style="width: 100%; height: 20pt; display: block; position: relative;">
+            start: 
+            <span class="numberInput">
+                <span class="numberInput_text" id="startTime"></span>
+                <span class="numberInput_buttonContainer">
+                    <div class="numberInput_button" id="timeUp"><span class="numberInput_button_text">▲</span></div>
+                    <div class="numberInput_button" id="timeDown"><span class="numberInput_button_text">▼</span></div>
+                </sapn>
+            </span>
+        </div> <br>
+        <input type="text" style="display:none" name="start_at">
+        talk length:
+        <select name="length">
+        </select>
+        minutes <br>
+        <button type="submit">submit</button>
+        <button onclick='cancelSubmit(event)'>cancel</button>
+    </form>
+</div>
+
+<script>
+    length_options.forEach(option => {
+        $("select[name='length']").append(
+            `<option value="${option}">${option}</option>`
+        )
+    })
+
+    function bookSlot(index) {
+        let minTime = new Date(timeSlots[index].start_at).getTime();
+        let maxTime = new Date(timeSlots[index].end_at).getTime();
+        let currentTime = minTime;
+        // disable length options when there is not enough time available
+        length_options.forEach(option => {
+            $(`option[value="${option}"]`).attr('disabled', (maxTime - minTime < 60000 * option))
+        })
+
+        const changeTime = function(minutes = 0) {
+            currentTime = Math.min(maxTime - $('select[name="length"]').val() * 60000, Math.max(currentTime + 60000 * minutes, minTime));
+            updateTime();
+            if (mousedown) {
+                changeTimeInterval = Math.max(87, changeTimeInterval * .75);
+                mouseDownTimeout = setTimeout(() => changeTime(minutes), changeTimeInterval);
+            }
+        }
+
+        const updateTime = function() {
+            let time = new Date(currentTime);
+            $('#startTime').text(time.getUTCHours() + ":" + time.getUTCMinutes().toString().padStart(2, "0"));
+            $('input[name="start_at"]').val(currentTime);
+        }
+
+        const changeTalkLength = function(event) {
+            changeTime(0);
+        }
+
+        updateTime();
+
+        let changeTimeInterval = 0;
+        let mousedown = false;
+        let mouseDownTimeout = null;
+        $("#timeUp").off('mousedown').on('mousedown', () => {mousedown=true; changeTimeInterval = 500; changeTime(5)});
+        $("#timeDown").off('mousedown').on('mousedown', () => {mousedown=true; changeTimeInterval = 500; changeTime(-5)});
+        $("select[name=length]").on('change', changeTalkLength);
+        $(document).mouseup(() => {mousedown = false; if (mouseDownTimeout) {clearTimeout(mouseDownTimeout)}});
+        $(".modalBox").show();
+    }
+
+    function cancelSubmit(event) {
+        event.preventDefault();
+        $(".modalBox").hide();
+    }
+</script>
