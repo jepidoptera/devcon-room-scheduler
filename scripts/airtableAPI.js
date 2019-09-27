@@ -1,5 +1,6 @@
-var Airtable = require('airtable');
-var base = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE);
+const Airtable = require('airtable');
+const base = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE);
+const base2 = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE_2);
 
 let rooms_cache = {};
 let speakers_cache = {add: (record) => {
@@ -66,63 +67,106 @@ function getSpeakers(callback) {
     });    
 }
 
-const API = {
-    getTalks: (callback) => {
-        let pages = 1;
-        let newTalks = [];
+function getTalks (callback) {
+    let pages = 1;
+    let newTalks = [];
 
-        base('Talks').select({sort: [{field: "Start at", direction: "asc"}]})
-        .eachPage(function page(records, fetchNextPage) {
-            // This function (`page`) will get called for each page of records.
-            if (callback) console.log(`page ${pages++}...`);
-        
-            for (let n = 0; n < records.length; n++) {
-                let record = records[n]
-                // some "talks" are actually blank rows, so filter those out...
-                if (record.get('Room')) {
-                    // if we don't have a record for any listed speaker, that is an indication that we need to re-load
-                    let speakerIDs = record.get('Speakers');
-                    if (speakerIDs) {
-                        for (let i = 0; i < speakerIDs.length; i++ )
-                        {
-                            if (!speakers_cache[speakerIDs[i]]) {
-                                console.log("new speaker detected: ", speakerIDs[i], ". reloading...");
-                                // re-load speakers and then call this function again
-                                getSpeakers(() => API.getTalks(callback));
-                                return;
-                            }
+    base('Talks').select({sort: [{field: "Start at", direction: "asc"}]})
+    .eachPage(function page(records, fetchNextPage) {
+        // This function (`page`) will get called for each page of records.
+        if (callback) console.log(`page ${pages++}...`);
+    
+        for (let n = 0; n < records.length; n++) {
+            let record = records[n]
+            // some "talks" are actually blank rows, so filter those out...
+            if (record.get('Room')) {
+                // if we don't have a record for any listed speaker, that is an indication that we need to re-load
+                let speakerIDs = record.get('Speakers');
+                if (speakerIDs) {
+                    for (let i = 0; i < speakerIDs.length; i++ )
+                    {
+                        if (!speakers_cache[speakerIDs[i]]) {
+                            console.log("new speaker detected: ", speakerIDs[i], ". reloading...");
+                            // re-load speakers and then call this function again
+                            getSpeakers(() =>getTalks(callback));
+                            return;
                         }
                     }
-                    newTalks.push({
-                        name: record.get('Name (english)'), 
-                        start_at: record.get('Start at'), 
-                        end_at: record.get('End at'), 
-                        description: record.get('Description (english)'), 
-                        speakers: speakerIDs 
-                            ? speakerIDs.map(id => speakers_cache[id].name)
-                            : [], 
-                        room: rooms_cache[record.get('Room')].name
-                    });
                 }
+                newTalks.push({
+                    name: record.get('Name (english)'), 
+                    start_at: record.get('Start at'), 
+                    end_at: record.get('End at'), 
+                    description: record.get('Description (english)'), 
+                    speakers: speakerIDs 
+                        ? speakerIDs.map(id => speakers_cache[id].name)
+                        : [], 
+                    room: rooms_cache[record.get('Room')].name
+                });
             }
-        
-            // To fetch the next page of records, call `fetchNextPage`.
-            // If there are more records, `page` will get called again.
-            // If there are no more records, `done` will get called.
-            fetchNextPage();
-        
-        }, function done(err) {
-            if (callback) console.log('done.');
-            talks_cache = newTalks;
+        }
+    
+        // To fetch the next page of records, call `fetchNextPage`.
+        // If there are more records, `page` will get called again.
+        // If there are no more records, `done` will get called.
+        fetchNextPage();
+    
+    }, function done(err) {
+        if (callback) console.log('done.');
+        talks_cache = newTalks;
 
+        // get meetings too
+        getMeetings(() => {
             if (err) { console.error(err); return; }
             if (callback) {
                 console.log('returning talks to server...')
                 callback(talks_cache);
             }
-        });    
-    },
+        })
+    });    
+}
+
+function getMeetings(callback) {
+    base2('Meetings').select({sort: [{field: "Start at", direction: "asc"}]})
+    .eachPage(function page(records, fetchNextPage) {
     
+        for (let n = 0; n < records.length; n++) {
+            let record = records[n]
+            // filter out any blank rows
+            if (record.get('Room')) {
+                let meeting = {
+                    name: record.get('Group name'), 
+                    start_at: record.get('Start at'), 
+                    end_at: record.get('End at'), 
+                    email: record.get('Email'),
+                    room: record.get('Room')
+                }
+                // console.log('found meeting: ', meeting)
+                // just put it in the same array with "talks" for ease of use
+                talks_cache.push(meeting);
+            }
+        }
+    
+        fetchNextPage();
+    
+    }, function done(err) {
+
+        if (err) { console.error(err); return; }
+        if (callback) {
+            callback(talks_cache);
+        }
+    });    
+}
+
+// load caches
+getRooms(() => getSpeakers(() => getTalks()));
+
+
+// just keep updating in the background every ten seconds
+setInterval(getTalks, 10000);
+
+// export object
+const API = {
     // get all talks occurring in a particular room
     getFromRoom: (roomName) => {
         let filterTalks = talks_cache.filter(talk => talk.room === roomName);
@@ -163,21 +207,34 @@ const API = {
             // don't do anything until the speakers are added
             return;
         }
+        let usingBase = base('Talks');
+        let record = {
+            "fields": {
+                "Name (english)": name,
+                "Start at": start_at,
+                "End at": end_at,
+                "Room": [
+                    rooms_cache[room].id
+                ],
+                "Description (english)": description,
+                "Speakers": speakers.map(speaker => speakers_cache[speaker].id)
+            }
+        }
 
-        base('Talks').create([
-            {
+        // awkwardly use a different format (and base) for these two rooms
+        if (["Meeting Room 1", "Meeting Room 2"].includes(room)) {
+            usingBase = base2("Meetings");
+            record = {
                 "fields": {
-                    "Name (english)": name,
+                    "Group name": name,
                     "Start at": start_at,
                     "End at": end_at,
-                    "Room": [
-                        rooms_cache[room].id
-                    ],
-                    "Description (english)": description,
-                    "Speakers": speakers.map(speaker => speakers_cache[speaker].id)
+                    "Room": room,
+                    "Email": email,
                 }
             }
-        ], function(err, records) {
+        }
+        usingBase.create([ record ], function(err, records) {
             if (err) {
                 console.error(err);
                 return;
@@ -191,10 +248,4 @@ const API = {
     }
 }
 
-// load caches
-getRooms(() => getSpeakers(() => API.getTalks()));
-
-
-// just keep updating in the background every ten seconds
-setInterval(API.getTalks, 10000);
 module.exports = API;
