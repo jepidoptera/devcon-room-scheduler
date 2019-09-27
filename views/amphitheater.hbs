@@ -41,6 +41,11 @@
 <script>
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+        let firstDay = "10-08";
+        let lastDay = "10-11";
+        let firstTalk = "10:00";
+        let lastTalk = "17:00";
+
     let talks = [ {{#each talks}} {
         name: '{{name}}', 
         time: '{{time}}', 
@@ -49,17 +54,19 @@
         start_at: '{{start_at}}', 
         end_at: '{{end_at}}', 
         speakers: [ {{#each speakers }}{{#if @index}},{{/if}} "{{name}}" {{/each}}] 
-    }, {{/each}}]
+    }, {{/each}}];
+    console.log(talks);
+    talks = talks
+        .sort((a, b) => new Date(a.start_at).getTime() < new Date(b.start_at).getTime() ? -1 : 1)
+        // ignore talks which take place outside of regular hours
+        .filter(time => new Date(time.start_at).getUTCHours() < parseInt(lastTalk) 
+            || new Date(time.start_at).getUTCHours() == parseInt(lastTalk)
+            && new Date(time.start_at).getUTCMinutes() <= parseInt(lastTalk.slice(3)));
     // this array will include both scheduled talks and open slots between them
     let timeSlots = [];
 
     $(() => {
         $(".modalBox").hide();
-
-        let firstDay = "10-08";
-        let lastDay = "10-11";
-        let firstTalk = "10:00";
-        let lastTalk = "17:00";
 
         // push a final "talk" to cap off the end of the conference
         talks.push({start_at: `2019-${lastDay}T${lastTalk}:00Z`})
@@ -70,10 +77,12 @@
         for (let i = 0; i < talks.length; i++) {
             while (time.getUTCDate() !== new Date(talks[i].start_at).getUTCDate()) {
                 // if the next talk isn't til the next day, we have to break up this time slot
-                timeSlots.push({
-                    start_at: time.toISOString(), 
-                    end_at: `2019-${(time.getUTCMonth() + 1).toString().padStart(2,"0")}-${time.getUTCDate().toString().padStart(2,"0")}T${lastTalk}:00Z`
-                })
+                if (time.getUTCHours() < parseInt(lastTalk)) {
+                    timeSlots.push({
+                        start_at: time.toISOString(), 
+                        end_at: `2019-${(time.getUTCMonth() + 1).toString().padStart(2,"0")}-${time.getUTCDate().toString().padStart(2,"0")}T${lastTalk}:00Z`
+                    })
+                }
                 // start again on the next day
                 time = new Date(time.getTime() + 86400000);
                 // at the beginning of the day, that is...

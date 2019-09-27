@@ -132,8 +132,8 @@ router.get('/amphitheater', (req, res) => {
             ...talk,
             // converting to UTC so javascript won't fuck with it
             // sorry this looks horrible. timezones are annoying
-            start_at: `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2,"0")}-${start.getDate().toString().padStart(2,"0")}T${start.getHours().toString().padStart(2,"0")}:${start.getMinutes().toString().padStart(2,"0")}Z`,
-            end_at: `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2,"0")}-${end.getDate().toString().padStart(2,"0")}T${end.getHours().toString().padStart(2,"0")}:${end.getMinutes().toString().padStart(2,"0")}Z`,
+            // start_at: `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2,"0")}-${start.getDate().toString().padStart(2,"0")}T${start.getHours().toString().padStart(2,"0")}:${start.getMinutes().toString().padStart(2,"0")}Z`,
+            // end_at: `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2,"0")}-${end.getDate().toString().padStart(2,"0")}T${end.getHours().toString().padStart(2,"0")}:${end.getMinutes().toString().padStart(2,"0")}Z`,
             speakers: talk.speakers.map(speaker => {return {name: speaker}})
         }
     })});
@@ -144,8 +144,8 @@ router.post('/reserve/amphitheater', (req, res) => {
     airTable.schedule({
         ...req.body,
         // turn them into correct data types
-        start_at: new Date(parseInt(req.body.start_at) + new Date().getTimezoneOffset() * 60000).toISOString(),
-        end_at: new Date(parseInt(req.body.start_at) + (new Date().getTimezoneOffset() + parseInt(req.body.length)) * 60000).toISOString(),
+        start_at: new Date(parseInt(req.body.start_at)).toISOString(),
+        end_at: new Date(parseInt(req.body.start_at) + parseInt(req.body.length) * 60000).toISOString(),
         speakers: req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase()),
         room: "Amphitheater"
     });

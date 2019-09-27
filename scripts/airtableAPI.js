@@ -126,7 +126,7 @@ const API = {
     // get all talks occurring in a particular room
     getFromRoom: (roomName) => {
         let filterTalks = talks_cache.filter(talk => talk.room === roomName);
-        console.log(filterTalks);
+        // console.log(filterTalks);
         return filterTalks;
     },
 
