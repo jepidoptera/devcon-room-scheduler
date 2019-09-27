@@ -1,42 +1,14 @@
 <h1>amphitheater talks...</h1>
-<table id = 'timeslots'>
+<div id="tabs"></div>
+<div id="tables"></div>
+{{!-- <table id="timeslots">
     <tr>
         <th>Name</th>
         <th>Time</th>
         <th>Description</th>
         <th>Speakers</th>
     </tr>
-</table>
-
-<div class="modalBox">
-    <div class="modalBoxTitle">Reserve Your Spot</div>
-    <form action="/reserve/amphitheater" method="POST">
-        talk name: <br> <input type="text" name = "name" required><br>
-        description: <br> <input type="text" name = "description"><br>
-        speaker(s): (separate names with commas)<br>
-        <input type="text" name="speakers" required> <br>
-        email: <br> <input type="email" name="email" required><br>
-        <div style="width: 100%; height: 20pt; display: block; position: relative;">
-            start: 
-            <span class="numberInput">
-                <span class="numberInput_text" id="startTime"></span>
-                <span class="numberInput_buttonContainer">
-                    <div class="numberInput_button" id="timeUp"><span class="numberInput_button_text">▲</span></div>
-                    <div class="numberInput_button" id="timeDown"><span class="numberInput_button_text">▼</span></div>
-                </sapn>
-            </span>
-        </div> <br>
-        <input type="text" style="display:none" name="start_at">
-        talk length:
-        <select name="length">
-            <option value="5">5</option>
-            <option value="10">10</option>
-        </select>
-        minutes <br>
-        <button type="submit">submit</button>
-        <button onclick='cancelSubmit(event)'>cancel</button>
-    </form>
-</div>
+</table> --}}
 
 <script>
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -100,7 +72,44 @@
         // lose the tail
         timeSlots.pop();
 
-        // populate table with readable formatting
+        // make a tab for each day
+        let dayTables = {};
+        timeSlots.forEach(slot => {
+            let date = new Date(slot.start_at).toDateString().slice(0, -5);
+            if (!dayTables[date]) {
+                // add a table and a tab button for that day
+                dayTables[date] = $("<table>")
+                    .css({"width": "1200px", "max-width": "Calc(100vw - 30px)"})
+                    .attr("id", `timeslots-${date.split(" ").join("_")}`)
+                    .append($("<tr>")
+                        .append(
+                            $("<th style='width:20%'>").html("Name"),
+                            $("<th style='width:20%'>").html("Time"),
+                            $("<th style='width:40%'>").html("Description"),
+                            $("<th style='width:20%'>").html("Speakers"),
+                        )
+                    )
+                
+                dayTables[date].appendTo($("#tables"));
+                if (Object.keys(dayTables).length > 1) dayTables[date].hide()
+                
+                $("#tabs")
+                    .append($("<button>")
+                        .addClass("tabButton")
+                        .text(date)
+                        .click(function() {
+                            $("table").hide();
+                            $(`#timeslots-${date.split(" ").join("_")}`).show();
+                            $(".tabButton").removeClass("bold");
+                            $(this).addClass("bold");
+                        })
+                        .addClass(Object.keys(dayTables).length === 1 ? "bold" : "")
+                    )
+            }
+            slot.table = dayTables[date];
+        })
+
+        // populate tables with readable formatting
         console.log(timeSlots);
         for (let i = 0; i < timeSlots.length; i++) {
             let start = new Date(timeSlots[i].start_at);
@@ -109,7 +118,7 @@
                 ${start.getUTCHours()}:${start.getUTCMinutes().toString().padStart(2, "0")} -
                 ${end.getUTCHours()}:${end.getUTCMinutes().toString().padStart(2, "0")}`
             
-            $("#timeslots").append(
+            timeSlots[i].table.append(
                 $("<tr>").append(
                     $("<td>").html(timeSlots[i].name || `<button style='color: red' onclick='bookSlot(${i})'>AVAILABLE - click to reserve</span>`),
                     $("<td>").html(timestring),
@@ -119,6 +128,43 @@
             )
         }
     })
+</script>
+
+{{!-- note to self: should have used react for all this --}}
+<link rel="stylesheet" href="">
+
+<div class="modalBox">
+    <div class="modalBoxTitle">Reserve Your Spot</div>
+    <form action="/reserve/amphitheater" method="POST">
+        talk name: <br> <input type="text" name = "name" required><br>
+        description: <br> <input type="text" name = "description"><br>
+        speaker(s): (separate names with commas)<br>
+        <input type="text" name="speakers" required> <br>
+        email: <br> <input type="email" name="email" required><br>
+        <div style="width: 100%; height: 20pt; display: block; position: relative;">
+            start: 
+            <span class="numberInput">
+                <span class="numberInput_text" id="startTime"></span>
+                <span class="numberInput_buttonContainer">
+                    <div class="numberInput_button" id="timeUp"><span class="numberInput_button_text">▲</span></div>
+                    <div class="numberInput_button" id="timeDown"><span class="numberInput_button_text">▼</span></div>
+                </sapn>
+            </span>
+        </div> <br>
+        <input type="text" style="display:none" name="start_at">
+        talk length:
+        <select name="length">
+            <option value="5">5</option>
+            <option value="10">10</option>
+        </select>
+        minutes <br>
+        <button type="submit">submit</button>
+        <button onclick='cancelSubmit(event)'>cancel</button>
+    </form>
+</div>
+
+
+<script>
 
     function bookSlot(index) {
         let minTime = new Date(timeSlots[index].start_at).getTime();
