@@ -177,10 +177,10 @@ const API = {
     schedule: (deets) => {
         console.log('scheduling: ', deets);
         // unpack those details
-        let {name, start_at, end_at, description, speakers, room} = deets;
+        let {name, start_at, end_at, email, description, speakers, room} = deets;
 
         // create entries for speakers if none exist
-        let missingSpeakers = speakers.filter(speaker => !speakers_cache[speaker]);
+        let missingSpeakers = speakers ? speakers.filter(speaker => !speakers_cache[speaker]) : [];
         if (missingSpeakers.length > 0) {
             base('Speakers').create(
                 missingSpeakers.map(speaker => {
@@ -208,21 +208,25 @@ const API = {
             return;
         }
         let usingBase = base('Talks');
-        let record = {
-            "fields": {
-                "Name (english)": name,
-                "Start at": start_at,
-                "End at": end_at,
-                "Room": [
-                    rooms_cache[room].id
-                ],
-                "Description (english)": description,
-                "Speakers": speakers.map(speaker => speakers_cache[speaker].id)
+        let record = {};
+
+        console.log('room name: ', room, ', cache: ', rooms_cache);
+        if (!["Meeting Room 1", "Meeting Room 2"].includes(room)) {
+            record = {
+                "fields": {
+                    "Name (english)": name,
+                    "Start at": start_at,
+                    "End at": end_at,
+                    "Room": [
+                        rooms_cache[room].id
+                    ],
+                    "Description (english)": description,
+                    "Speakers": speakers.map(speaker => speakers_cache[speaker].id)
+                }
             }
         }
-
         // awkwardly use a different format (and base) for these two rooms
-        if (["Meeting Room 1", "Meeting Room 2"].includes(room)) {
+        else {
             usingBase = base2("Meetings");
             record = {
                 "fields": {
