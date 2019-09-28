@@ -113,7 +113,7 @@ router.get("/meeting", (req, res) => {
     
         res.render("success", {
             text: "Thank you for your submission.  You'll receive a confirmation email shortly.", 
-            redirect: `/${req.body.room.split(' ')[0]}`
+            redirect: `/${req.body.room.split(' ')[0].toLowerCase()}`
         })
     })
     
