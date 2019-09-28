@@ -86,9 +86,9 @@ function getTalks (callback) {
                     for (let i = 0; i < speakerIDs.length; i++ )
                     {
                         if (!speakers_cache[speakerIDs[i]]) {
-                            console.log("new speaker detected: ", speakerIDs[i], ". reloading...");
+                            // console.log("new speaker detected: ", speakerIDs[i], ". reloading...");
                             // re-load speakers and then call this function again
-                            getSpeakers(() =>getTalks(callback));
+                            getSpeakers(() => getTalks(callback));
                             return;
                         }
                     }
