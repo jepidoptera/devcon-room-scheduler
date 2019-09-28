@@ -1,6 +1,6 @@
 <h1>{{title}}</h1>
 <div id="tabs"></div>
-<div id="tables"></div>
+<div id="tables" style="width: 1200px; max-width: Calc(100vw - 30px); border: 1px solid black"></div>
 {{!-- <table id="timeslots">
     <tr>
         <th>Name</th>
@@ -31,8 +31,8 @@
         { name: "{{Capitalize name}}", width: {{width}} },
     {{/each}}]
 
-    time_increment = {{time_increment}};
-    length_options = Array({{max_consecutive_slots}}).fill(0).map((value, i) => (i + 1) * time_increment);
+    let time_increment = {{time_increment}};
+    let length_options = Array({{max_consecutive_slots}}).fill(0).map((value, i) => (i + 1) * time_increment);
 
     console.log(bookings);
     bookings = bookings
@@ -42,91 +42,124 @@
             || new Date(time.start_at).getUTCHours() == parseInt(lastTalk)
             && new Date(time.start_at).getUTCMinutes() <= parseInt(lastTalk.slice(3)));
     // this array will include both scheduled bookings and open slots between them
-    let timeSlots = [];
+    let rooms = {}; // {room1: {bookings: []}, room2: {bookings: []}}
 
     $(() => {
         $(".modalBox").hide();
 
-        // push a final "talk" to cap off the end of the conference
-        bookings.push({start_at: `2019-${lastDay}T${lastTalk}:00Z`})
-
-        let time = new Date(`2019-${firstDay}T${firstTalk}:00Z`);
-
-        // find blocks of time that aren't booked yet
-        for (let i = 0; i < bookings.length; i++) {
-            while (time.getUTCDate() !== new Date(bookings[i].start_at).getUTCDate()) {
-                // if the next talk isn't til the next day, we have to break up this time slot
-                if (time.getUTCHours() < parseInt(lastTalk)) {
-                    timeSlots.push({
-                        start_at: time.toISOString(), 
-                        end_at: `2019-${(time.getUTCMonth() + 1).toString().padStart(2,"0")}-${time.getUTCDate().toString().padStart(2,"0")}T${lastTalk}:00Z`
-                    })
-                }
-                // start again on the next day
-                time = new Date(time.getTime() + 86400000);
-                // at the beginning of the day, that is...
-                time.setUTCHours(parseInt(firstTalk), parseInt(firstTalk.slice(3)));
-            }
-            if (time.getTime() < new Date(bookings[i].start_at).getTime()) {
-                // push a new slot that starts where the current talk ends
-                timeSlots.push({start_at: time.toISOString(), end_at: bookings[i].start_at})
-            }
-            // and the next slot starts where this talk ends
-            time = new Date(bookings[i].end_at);
-            // push each talk as a filled time slot
-            timeSlots.push({...bookings[i]});
+        // split into columns for each room
+        for (i in bookings) {
+            if (!rooms[bookings[i].room]) rooms[bookings[i].room] = {
+                name: bookings[i].room,
+                class_name: bookings[i].room.split(' ').join('_'), 
+                bookings: []
+            };
+            let room = rooms[bookings[i].room];
+            room.bookings.push(bookings[i]);
         }
-        // lose the tail
-        timeSlots.pop();
+        console.log(rooms);
+        bookings = null;
 
-        // make a tab for each day
-        let dayTables = {};
-        timeSlots.forEach((slot, i) => {
-            let date = new Date(slot.start_at).toDateString().slice(0, -5);
-            if (!dayTables[date]) {
-                // add a table and a tab button for that day
-                dayTables[date] = $("<table>")
-                    .css({"width": "1200px", "max-width": "Calc(100vw - 30px)"})
-                    .attr("id", `timeslots-${date.split(" ").join("_")}`)
-                    .append($("<tr>")
-                        .append(
-                            headings.map(heading => 
-                                {return `<th style='width:${heading.width}%'>${heading.name}</th>`}
-                            ).join('')
-                        )
-                    )
-                
-                dayTables[date].appendTo($("#tables"));
-                if (Object.keys(dayTables).length > 1) dayTables[date].hide();
-                
-                $("#tabs")
-                    .append($("<button>")
-                        .addClass("tabButton")
-                        .text(date)
-                        .click(function() {
-                            $("table").hide();
-                            $(`#timeslots-${date.split(" ").join("_")}`).show();
-                            $(".tabButton").removeClass("bold");
-                            $(this).addClass("bold");
+        // build a column for each room
+        Object.keys(rooms).forEach(key => {
+            let room = rooms[key];
+            room.timeSlots = [];
+
+            // push a final "talk" to cap off the end of the conference
+            room.bookings.push({start_at: `2019-${lastDay}T${lastTalk}:00Z`})
+
+            let time = new Date(`2019-${firstDay}T${firstTalk}:00Z`);
+
+            // find blocks of time that aren't booked yet
+            for (let i = 0; i < room.bookings.length; i++) {
+                while (time.getUTCDate() !== new Date(room.bookings[i].start_at).getUTCDate()) {
+                    // if the next talk isn't til the next day, we have to break up this time slot
+                    if (time.getUTCHours() < parseInt(lastTalk)) {
+                        room.timeSlots.push({
+                            start_at: time.toISOString(), 
+                            end_at: `2019-${(time.getUTCMonth() + 1).toString().padStart(2,"0")}-${time.getUTCDate().toString().padStart(2,"0")}T${lastTalk}:00Z`
                         })
-                        .addClass(Object.keys(dayTables).length === 1 ? "bold" : "")
-                    )
+                    }
+                    // start again on the next day
+                    time = new Date(time.getTime() + 86400000);
+                    // at the beginning of the day, that is...
+                    time.setUTCHours(parseInt(firstTalk), parseInt(firstTalk.slice(3)));
+                }
+                if (time.getTime() < new Date(room.bookings[i].start_at).getTime()) {
+                    // push a new slot that starts where the current talk ends
+                    room.timeSlots.push({start_at: time.toISOString(), end_at: room.bookings[i].start_at})
+                }
+                // and the next slot starts where this talk ends
+                time = new Date(room.bookings[i].end_at);
+                // push each talk as a filled time slot
+                room.timeSlots.push({...room.bookings[i]});
             }
-            dayTables[date].append(
-                $("<tr>").append(
-                    getTableRow(slot, i)
+            // lose the tail
+            room.timeSlots.pop();
+
+            // a column for each room
+            let roomColumn = $("<div>")
+                .addClass("tableColumn")
+                .appendTo($("#tables"))
+                .css({"width": `${100 / Object.keys(rooms).length}%`})
+            if (Object.keys(rooms).length > 1) {
+                // add a title if there are multiple rooms
+                roomColumn.append($("<div>").addClass("title").text(room.name));
+            }
+
+            // make a tab for each day
+            let dayTables = {};
+            room.timeSlots.forEach((slot, i) => {
+                let date = new Date(slot.start_at).toDateString().slice(0, -5);
+                if (!dayTables[date]) {
+                    // add a table and a tab button for that day
+                    dayTables[date] = $("<table>")
+                        .addClass(`timeslots-${date.split(" ").join("_")}`)
+                        .css({"width": "100%", "height": "100%"})
+                        .append($("<tr>")
+                            .append(
+                                headings.map(heading => 
+                                    {return `<th style='width:${heading.width}%'>${heading.name}</th>`}
+                                ).join('')
+                            )
+                        )
+                    
+                    dayTables[date].appendTo(roomColumn);
+                    if (Object.keys(dayTables).length > 1) dayTables[date].hide();
+                    
+                    // make a tab button for this day if one doesn't exist already
+                    if ($(`#${date.split(" ").join("_")}.tabButton`).length === 0) {
+                        $("#tabs")
+                            .append($("<button>")
+                                .addClass("tabButton")
+                                .attr("id", `${date.split(" ").join("_")}`)
+                                .text(date)
+                                .click(function() {
+                                    $("table").hide();
+                                    $(`.timeslots-${date.split(" ").join("_")}`).show();
+                                    $(".tabButton").removeClass("bold");
+                                    $(this).addClass("bold");
+                                })
+                                .addClass(Object.keys(dayTables).length === 1 ? "bold" : "")
+                            )
+                    }
+                }
+                dayTables[date].append(
+                    $("<tr>").append(
+                        getTableRow(room, slot, i)
+                    )
                 )
-            )
+            })
         })
     })
 
-    function getTableRow(row, index) {
+    function getTableRow(room, row, index) {
         // populate tables with readable formatting
         let htmlString = "";
         headings.forEach(heading => {
             if (heading.name === "Name" || heading.name === "Status") {
                 htmlString += "<td>" 
-                    + (row.name || `<button style='color: red' onclick='bookSlot(${index})'>AVAILABLE - click to reserve</span>`) 
+                    + (row.name || `<button style='color: red' onclick='bookSlot("${room.name}", ${index})'>AVAILABLE - click to reserve</button>`) 
                     + "</td>"
             }
             else if (heading.name === "Time") {
@@ -150,12 +183,11 @@
 
 <div class="modalBox">
     <div class="modalBoxTitle">Reserve Your Spot</div>
-    <form action="/reserve/amphitheater" method="POST">
-        talk name: <br> <input type="text" name = "name" required><br>
-        description: <br> <input type="text" name = "description"><br>
-        speaker(s): (separate names with commas)<br>
-        <input type="text" name="speakers" required> <br>
-        email: <br> <input type="email" name="email" required><br>
+    <form id="scheduleForm" action="/reserve" method="POST">
+        {{#each fields}}
+            {{text}} <br> <input type="text" name="{{name}}" {{#if required}}required{{/if}} <br>
+        {{/each}}
+        email: <br> <input type="email" name="email" required><br><br>
         <div style="width: 100%; height: 20pt; display: block; position: relative;">
             start: 
             <span class="numberInput">
@@ -167,7 +199,8 @@
             </span>
         </div> <br>
         <input type="text" style="display:none" name="start_at">
-        talk length:
+        <input type="text" style="display:none" name="room">
+        length:
         <select name="length">
         </select>
         minutes <br>
@@ -183,14 +216,19 @@
         )
     })
 
-    function bookSlot(index) {
-        let minTime = new Date(timeSlots[index].start_at).getTime();
-        let maxTime = new Date(timeSlots[index].end_at).getTime();
+    function bookSlot(room, index) {
+        let minTime = new Date(rooms[room].timeSlots[index].start_at).getTime();
+        let maxTime = new Date(rooms[room].timeSlots[index].end_at).getTime();
         let currentTime = minTime;
-        // disable length options when there is not enough time available
+
+
+        // disable longer length options when there is not enough time available
         length_options.forEach(option => {
             $(`option[value="${option}"]`).attr('disabled', (maxTime - minTime < 60000 * option))
         })
+
+        // invisibly set room name
+        $('input[name="room"').val(room);
 
         const changeTime = function(minutes = 0) {
             currentTime = Math.min(maxTime - $('select[name="length"]').val() * 60000, Math.max(currentTime + 60000 * minutes, minTime));
@@ -216,8 +254,8 @@
         let changeTimeInterval = 0;
         let mousedown = false;
         let mouseDownTimeout = null;
-        $("#timeUp").off('mousedown').on('mousedown', () => {mousedown=true; changeTimeInterval = 500; changeTime(5)});
-        $("#timeDown").off('mousedown').on('mousedown', () => {mousedown=true; changeTimeInterval = 500; changeTime(-5)});
+        $("#timeUp").off('mousedown').on('mousedown', () => {mousedown=true; changeTimeInterval = 500; changeTime(time_increment)});
+        $("#timeDown").off('mousedown').on('mousedown', () => {mousedown=true; changeTimeInterval = 500; changeTime(-time_increment)});
         $("select[name=length]").on('change', changeTalkLength);
         $(document).mouseup(() => {mousedown = false; if (mouseDownTimeout) {clearTimeout(mouseDownTimeout)}});
         $(".modalBox").show();

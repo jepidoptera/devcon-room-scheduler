@@ -1,4 +1,4 @@
-table, th, td  {
+th, td  {
     border: 1px solid black;
     padding: 10px;
     text-align: center;
@@ -11,3 +11,23 @@ textarea {
 .bold {
     font-weight: 900;
 }
+
+.tableColumn {
+    display: inline-block;
+    margin: 0;
+    vertical-align: top;
+    font-size: 12pt;
+    font-weight: 100;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.title {
+    font-size: 18pt;
+    font-weight: 700;
+    text-align: center;
+    line-height: 32pt;
+    vertical-align: top;
+    padding-bottom: 10px;
+}
+
