@@ -13,10 +13,10 @@
 <script>
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-        let firstDay = "{{first_day}}";
-        let lastDay = "{{last_day}}";
-        let firstTalk = "{{first_talk}}";
-        let lastTalk = "{{last_talk}}";
+    let firstDay = "{{first_day}}";
+    let lastDay = "{{last_day}}";
+    let firstTalk = "{{first_talk}}";
+    let lastTalk = "{{last_talk}}";
 
     let bookings = [ {{#each bookings}} {
         name: '{{name}}', 
@@ -102,6 +102,7 @@
                 .addClass("tableColumn")
                 .appendTo($("#tables"))
                 .css({"width": `${100 / Object.keys(rooms).length}%`})
+
             if (Object.keys(rooms).length > 1) {
                 // add a title if there are multiple rooms
                 roomColumn.append($("<div>").addClass("title").text(room.name));
@@ -188,7 +189,7 @@
             {{text}} <br> <input type="text" name="{{name}}" {{#if required}}required{{/if}} <br>
         {{/each}}
         email: <br> <input type="email" name="email" required><br><br>
-        <div style="width: 100%; height: 20pt; display: block; position: relative;">
+        <div class="numberInputLine">
             start: 
             <span class="numberInput">
                 <span class="numberInput_text" id="startTime"></span>
@@ -204,8 +205,10 @@
         <select name="length">
         </select>
         minutes <br>
-        <button type="submit">submit</button>
-        <button onclick='cancelSubmit(event)'>cancel</button>
+        <div class="modalBox_buttonContainer">
+            <button type="submit">submit</button>
+            <button onclick='cancelSubmit(event)'>cancel</button>
+        </div>
     </form>
 </div>
 
