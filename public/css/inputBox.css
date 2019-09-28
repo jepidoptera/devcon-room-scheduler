@@ -5,15 +5,28 @@
     top: 50%;
     transform: translate(-50%, -50%);
     border: 1px solid black;
-    padding: 10px;
+    padding: 10px 20px;
     line-height: 20pt;
     background-color: white;
     user-select: none;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .modalBox input {
     width: 100%;
     user-select: normal;
+}
+
+.modalBox button {
+    display: inline-block;
+    margin: 0 20px;
+}
+
+.modalBox_buttonContainer {
+    width: Calc(100% - 40px);
+    text-align: center;
+    padding: 20px;
 }
 
 .modalBoxTitle {
@@ -23,12 +36,20 @@
     width: 100%;
     font-size: 16pt;
     text-align: center;
-    padding: 10px;
-    filter: invert();
+    padding: 10px 20px;
+    background-color: black;
+    color: white;
     margin-bottom: 10px;
-    margin-left: -10px;
-    margin-right: -10px;
+    margin-left: -20px;
+    margin-right: -20px;
     margin-top: -10px;
+}
+
+.numberInputLine {
+    width: 100%; 
+    height: 20pt; 
+    display: block; 
+    position: relative;
 }
 
 .numberInput {
@@ -75,4 +96,49 @@
     display: inline-block;
     vertical-align: middle;
     line-height: normal;
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .modalBox {
+        width: 100vw;
+        height: 100vh;
+        font-size: 5vw;
+        line-height: 7vw;
+    }
+    .modalBoxTitle {
+        font-size: 8vw;
+    }
+    .modalBox input {
+        font-size: 5vw;
+        border-bottom: 1px solid black
+    }
+    .modalBox button {
+        font-size: 5vw;
+        border: 1px solid black;
+        border-radius: 4px;
+        margin: 6vw;
+    }
+    .modalBox_buttonContainer {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+    }
+    .modalBox select {
+        font-size: 5vw;
+    }
+    .numberInput_button_text {
+        font-size: 3vw;
+    }
+    .numberInput {
+        height: 8vw;
+    }
+    .numberInput_text {
+        height: 8vw;
+        width: 24vw;
+        line-height: 8vw;
+        vertical-align: middle;
+    }
+    .numberInputLine {
+        height: 7vw;
+    }
 }
