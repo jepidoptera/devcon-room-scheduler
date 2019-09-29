@@ -44,6 +44,15 @@ table.timeslots {
     text-rendering: optimizeLegibility;
 }
 
+.tabButton_row_container {
+    margin: 20px;
+}
+
+.tabButton_container {
+    display: inline-block;
+    text-align: center;
+}
+
 .tabButton {
     margin-top: 10px;
     background: #FFFFF7;
@@ -60,10 +69,6 @@ table.timeslots {
     display: inline-block;
     cursor: pointer;
     color: #222222;
-}
-
-.tabButton_container {
-    margin: 20px;
 }
 
 .tabButton:hover {
@@ -116,15 +121,21 @@ a.room_link {
 
 @media (max-aspect-ratio: 1/1) {
     .tabButton {
-        margin: 0;
-        display: table-cell;
+        margin-left: 0;
+        margin-top: 0;
+        padding: 8px;
     }
     .tabButton_row {
-        display: table;
-        table-layout: fixed;
         width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-evenly;
     }
     nav.header {
         margin-top: 0;
+    }
+    .pageTitle {
+        font-size: 7vw;
+        text-align: center;
     }
 }
