@@ -1,6 +1,6 @@
 <header class="grid-container-atom header-molecule">
     <div class="grid-container-atom__width-enforcer">
-        <a href="/" class="header-molecule__logo-link">
+        <div href="/" class="header-molecule__logo-link">
             <div class="logo-atom">
             <div class="logo-atom__logomark-container">
                 <a href="/" class="logo-atom__logo-link">
@@ -12,8 +12,8 @@
                 <div class="logo-atom__title-container">
                     <img src="/images/logotext-0.75x.png" class="logo-atom header-molecule__logo" alt="Devcon">
                 </div>
-            </div
-        ></a>
+            </div>
+        </div>
     </div>
 </header>
 <nav class='header'>
@@ -22,8 +22,10 @@
         <a href="/meeting" class="room_link">Meeting Rooms</a>
     </div>
 </nav>
-<div id="days"></div>
-<div id="rooms"></div>
+<div class="tabButton_container">
+    <div id="days"></div>
+    <div id="rooms"></div>
+</div>
 <h1 class="pageTitle">{{title}}</h1>
 <div id="tables" style="width: Calc(100vw - 30px); max-width: {{max_table_width}}"></div>
 {{!-- <table id="timeslots">

@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 img.logomark-atom {
     width: 50px;
     height: 60px;
@@ -11,12 +15,51 @@ img.logo-atom {
     padding-right: 5px;
 }
 
+.grid-container-atom {
+    width: 100%;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
+
+.grid-container-atom__width-enforcer {
+    max-width: 1440px;
+    width: 85%;
+    display: -ms-flexbox;
+    display: flex;
+}
 .logo-atom {
     position: relative;
     height: auto;
     display: -ms-flexbox;
     display: flex;
     text-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
+
+.header-molecule {
+    padding: 20px 0;
+    background: #FFFFF7;
+    position: relative;
+}
+
+.header-molecule::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    bottom: -2px;
+    height: 110%;
+    width: 110%;
+    background: linear-gradient(90deg, #fca09a, #fcccd3, #ffcc9d, #98ddad, #81d7ec, #a0aaed);
+}
+
+.header-molecule .grid-container-atom__width-enforcer {
+    -ms-flex-pack: justify;
+    justify-content: space-between;
     -ms-flex-align: center;
     align-items: center;
 }
