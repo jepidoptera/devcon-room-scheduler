@@ -1,6 +1,31 @@
-<h1>{{title}}</h1>
-<div id="tabs"></div>
-<div id="tables" style="width: 1200px; max-width: Calc(100vw - 30px); border: 1px solid black"></div>
+<header class="grid-container-atom header-molecule">
+    <div class="grid-container-atom__width-enforcer">
+        <a href="/" class="header-molecule__logo-link">
+            <div class="logo-atom">
+            <div class="logo-atom__logomark-container">
+                <a href="/" class="logo-atom__logo-link">
+                    <div>
+                        <img src="/images/ef.png" class="logomark-atom logo-atom__logo" alt="Ethereum crystal">
+                    </div>
+                </a>
+                </div>
+                <div class="logo-atom__title-container">
+                    <img src="/images/logotext-0.75x.png" class="logo-atom header-molecule__logo" alt="Devcon">
+                </div>
+            </div
+        ></a>
+    </div>
+</header>
+<nav class='header'>
+    <div class = "header_widthContainer">
+        <a href="/amphitheater" class="room_link">Lightning Talks</a>
+        <a href="/meeting" class="room_link">Meeting Rooms</a>
+    </div>
+</nav>
+<div id="days"></div>
+<div id="rooms"></div>
+<h1 class="pageTitle">{{title}}</h1>
+<div id="tables" style="width: Calc(100vw - 30px); max-width: {{max_table_width}}"></div>
 {{!-- <table id="timeslots">
     <tr>
         <th>Name</th>
@@ -17,6 +42,9 @@
     let lastDay = "{{last_day}}";
     let firstTalk = "{{first_talk}}";
     let lastTalk = "{{last_talk}}";
+
+    let daySelected = '';
+    let roomSelected = '';
 
     let bookings = [ {{#each bookings}} {
         name: '{{name}}', 
@@ -41,8 +69,13 @@
         .filter(time => new Date(time.start_at).getUTCHours() < parseInt(lastTalk) 
             || new Date(time.start_at).getUTCHours() == parseInt(lastTalk)
             && new Date(time.start_at).getUTCMinutes() <= parseInt(lastTalk.slice(3)));
-    // this array will include both scheduled bookings and open slots between them
-    let rooms = {}; // {room1: {bookings: []}, room2: {bookings: []}}
+            
+    let rooms = { {{#each rooms}} "{{this}}":{ 
+        bookings: [], 
+        name: '{{this}}',
+        shortName: '{{this}}'.split(' ').slice(1).join(' ')
+    }, {{/each}} }
+    // {room1: {bookings: []}, room2: {bookings: []}}
 
     $(() => {
         $(".modalBox").hide();
@@ -60,8 +93,8 @@
         console.log(rooms);
         bookings = null;
 
-        // build a column for each room
-        Object.keys(rooms).forEach(key => {
+        // build a timeline for each room
+        Object.keys(rooms).forEach((key, roomIndex) => {
             let room = rooms[key];
             room.timeSlots = [];
 
@@ -71,6 +104,7 @@
             let time = new Date(`2019-${firstDay}T${firstTalk}:00Z`);
 
             // find blocks of time that aren't booked yet
+            // the final array will include both scheduled bookings and open slots between them
             for (let i = 0; i < room.bookings.length; i++) {
                 while (time.getUTCDate() !== new Date(room.bookings[i].start_at).getUTCDate()) {
                     // if the next talk isn't til the next day, we have to break up this time slot
@@ -97,25 +131,46 @@
             // lose the tail
             room.timeSlots.pop();
 
-            // a column for each room
-            let roomColumn = $("<div>")
-                .addClass("tableColumn")
-                .appendTo($("#tables"))
-                .css({"width": `${100 / Object.keys(rooms).length}%`})
+            // for each room, a collection of tables
+            // {room1: [day1, day2, day3], room2: [day1, day2, day3]}
+            let roomTable = $("<div>")
+                .addClass("roomTables")
+                .addClass(room.name.split(' ').join('_'))
+
+            if (roomIndex === 0) {
+                if (Object.keys(rooms).length > 1) roomSelected = room.shortName;
+                roomTable.appendTo($("#tables"))
+            }
+                // .css({"width": `${100 / Object.keys(rooms).length}%`})
 
             if (Object.keys(rooms).length > 1) {
-                // add a title if there are multiple rooms
-                roomColumn.append($("<div>").addClass("title").text(room.name));
+                // add another row of tab buttons if there are multiple rooms
+                $("#rooms")
+                    .append($("<button>")
+                        .addClass("tabButton")
+                        .text(room.shortName)
+                        .click(function() {
+                            roomSelected = $(this).text();
+                            updateTitle();
+                            $("#rooms .tabButton").removeClass("bold");
+                            $(this).addClass("bold");
+                            $(".roomTables").remove();
+                            $("#tables").append(roomTable);
+                        })
+                        .addClass(roomIndex === 0 ? "bold" : "")
+                    )
             }
 
-            // make a tab for each day
+            // for each day
             let dayTables = {};
             room.timeSlots.forEach((slot, i) => {
-                let date = new Date(slot.start_at).toDateString().slice(0, -5);
-                if (!dayTables[date]) {
-                    // add a table and a tab button for that day
-                    dayTables[date] = $("<table>")
-                        .addClass(`timeslots-${date.split(" ").join("_")}`)
+                let dateString = new Date(slot.start_at).toDateString().slice(0, -5);
+                let dayString = "Day " + (Object.keys(dayTables).length + 1);
+                if (!dayTables[dateString]) {
+                    // add a table with headings
+                    dayTables[dateString] = $("<table>")
+                        .addClass("timeslots")
+                        .addClass(`${dateString.split(" ").join("_")}`)
                         .css({"width": "100%", "height": "100%"})
                         .append($("<tr>")
                             .append(
@@ -125,34 +180,41 @@
                             )
                         )
                     
-                    dayTables[date].appendTo(roomColumn);
-                    if (Object.keys(dayTables).length > 1) dayTables[date].hide();
+                    dayTables[dateString].appendTo(roomTable);
+                    if (Object.keys(dayTables).length > 1) dayTables[dateString].hide();
+                    else daySelected = dayString;
                     
                     // make a tab button for this day if one doesn't exist already
-                    if ($(`#${date.split(" ").join("_")}.tabButton`).length === 0) {
-                        $("#tabs")
+                    if ($(`#${dateString.split(" ").join("_")}.tabButton`).length === 0) {
+                        $("#days")
                             .append($("<button>")
                                 .addClass("tabButton")
-                                .attr("id", `${date.split(" ").join("_")}`)
-                                .text(date)
+                                .attr("id", `${dateString.split(" ").join("_")}`)
+                                .text(dayString)
                                 .click(function() {
+                                    daySelected = dayString;
+                                    updateTitle();
                                     $("table").hide();
-                                    $(`.timeslots-${date.split(" ").join("_")}`).show();
-                                    $(".tabButton").removeClass("bold");
+                                    $(`.${dateString.split(" ").join("_")}`).show();
+                                    $("#days .tabButton").removeClass("bold");
                                     $(this).addClass("bold");
                                 })
                                 .addClass(Object.keys(dayTables).length === 1 ? "bold" : "")
                             )
                     }
                 }
-                dayTables[date].append(
+                dayTables[dateString].append(
                     $("<tr>").append(
                         getTableRow(room, slot, i)
                     )
                 )
             })
         })
+        updateTitle();
     })
+    function updateTitle() {
+        $(".pageTitle").text(`{{title}}: ${roomSelected ? roomSelected + ", " : ""} ${daySelected}`)
+    }
 
     function getTableRow(room, row, index) {
         // populate tables with readable formatting

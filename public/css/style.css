@@ -1,33 +1,112 @@
+body {
+    margin: 0;
+}
+
 th, td  {
-    border: 1px solid black;
     padding: 10px;
-    text-align: center;
+    text-align: left;
+}
+
+td {
+    border: 1px solid black;
 }
 
 textarea {
     resize: none;
 }
 
-.bold {
-    font-weight: 900;
-}
-
-.tableColumn {
-    display: inline-block;
-    margin: 0;
+table.timeslots {
+    font-family: sans-serif;
+    font-size: 14px;
+    width: 98.5%;
+    border-collapse: collapse;
+    margin: 10px;
     vertical-align: top;
-    font-size: 12pt;
     font-weight: 100;
-    padding: 10px;
+    padding: 0 10px;
     box-sizing: border-box;
 }
 
-.title {
+.columnTitle {
     font-size: 18pt;
     font-weight: 700;
-    text-align: center;
     line-height: 32pt;
     vertical-align: top;
-    padding-bottom: 10px;
+}
+
+.pageTitle {
+    color: #A40002;
+    font-size: 32px;
+    font-family: /* var(--font-stack) */ sans-serif;
+    line-height: 1.5;
+    font-weight: 700;
+    margin: 10px 20px;
+    text-rendering: optimizeLegibility;
+}
+
+.tabButton {
+    margin-top: 10px;
+    background: #FFFFF7;
+    border: 2px solid #888888;
+    transition: 100ms border-color;
+    font-family: sans-serif;
+    line-height: 1.75;
+    font-weight: 400;
+    margin: 10px;
+    text-rendering: optimizeLegibility;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 10px 20px;
+    display: inline-block;
+    cursor: pointer;
+    color: #222222;
+}
+
+.tabButton:hover {
+    border-color: black;
+}
+
+div.tabs {
+    margin: 20px;
+    display: inline-block;
+}
+
+nav.header {
+    background: #FFFFF7;
+    padding: 20px 0;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    border-top: 2px solid #222222;
+    border-bottom: 2px solid #222222;
+    margin: 20px 0;
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    text-align: center;
+}
+
+div.header_widthContainer {
+    max-width: 1440px;
+    width: 85%;
+    /* display: -ms-flexbox; */
+    display: inline-block;
+    text-align: left;
+}
+
+a.room_link {
+    font-family: sans-serif;
+    color: #222222;
+    text-decoration: none;
+    line-height: 1.75;
+    font-weight: 400;
+    display: inline-block;
+    font-size: 14px;
+    margin-left: 30px;
+}
+
+.bold {
+    font-weight: 900;
+    border-color: black;
 }
 

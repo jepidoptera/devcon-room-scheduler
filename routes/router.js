@@ -37,13 +37,16 @@ router.get('/oldhome', (req, res) => {
         })
         .catch(err => res.status(422).json(err));
 })
+router.get("/", (req, res) => {
+    res.redirect('/amphitheater');
+})
 
 router.get('/amphitheater', (req, res) => {
     console.log('retrieving scheduler page...');
     let talks = airTable.getFromRoom("Amphitheater");
     res.render("scheduler", {
         title: "Amphitheater Lightning Talks",
-        rooms: ["amphitheater"],
+        rooms: ["Amphitheater"],
         bookings: talks.map(talk => {
 
             return {
@@ -76,8 +79,8 @@ router.get("/meeting", (req, res) => {
         .concat(airTable.getFromRoom("Meeting Room 2"));
         // console.log(meetings);
         res.render("scheduler", {
-            title: "Meeting Rooms",
-            rooms: ["meeting room 1", "meeting room 2"],
+            title: "Meetings",
+            rooms: ["Meeting Room 1", "Meeting Room 2"],
             // obscure the actual names of the groups
             bookings: meetings.map(meeting => {return {...meeting, name: "occupied"}}),
             first_day: "10-08",
@@ -88,6 +91,7 @@ router.get("/meeting", (req, res) => {
                 {name:"status", width: 50},
                 {name:"time", width: 50},
             ],
+            max_table_width: "1200px",
             fields: [
                 {text:"group name:", name: "name", required: true}
             ],
