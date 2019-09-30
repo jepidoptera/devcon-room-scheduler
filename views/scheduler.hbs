@@ -2,15 +2,17 @@
     <div class="grid-container-atom__width-enforcer">
         <div href="/" class="header-molecule__logo-link">
             <div class="logo-atom">
-            <div class="logo-atom__logomark-container">
-                <a href="/" class="logo-atom__logo-link">
-                    <div>
-                        <img src="/images/ef.png" class="logomark-atom logo-atom__logo" alt="Ethereum crystal">
-                    </div>
-                </a>
+                <div class="logo-atom__logomark-container">
+                    <a href="https://www.devcon.org" class="logo-atom__logo-link">
+                        <div>
+                            <img src="/images/ef.png" class="logomark-atom logo-atom__logo" alt="Ethereum crystal">
+                        </div>
+                    </a>
                 </div>
                 <div class="logo-atom__title-container">
-                    <img src="/images/logotext-0.75x.png" class="logo-atom header-molecule__logo" alt="Devcon">
+                    <a href="https://www.devcon.org" class="logo-atom__logo-link">
+                        <img src="/images/logotext-0.75x.png" class="logo-atom header-molecule__logo" alt="Devcon">
+                    </a>
                 </div>
             </div>
         </div>
@@ -27,7 +29,7 @@
     <div class="tabButton_row" id="rooms"></div>
 </div>
 <h1 class="pageTitle">{{title}}</h1>
-<div id="tables" style="width: Calc(100vw - 30px); max-width: {{max_table_width}}"></div>
+<div id="tables" style="width: 100%; max-width: {{max_table_width}}"></div>
 {{!-- <table id="timeslots">
     <tr>
         <th>Name</th>
@@ -175,7 +177,7 @@
                     dayTables[dateString] = $("<table>")
                         .addClass("timeslots")
                         .addClass(`${dateString.split(" ").join("_")}`)
-                        .css({"width": "100%", "height": "100%"})
+                        //.css({"width": "100%", "height": "100%"})
                         .append($("<tr>")
                             .append(
                                 headings.map(heading => 
@@ -228,7 +230,7 @@
         headings.forEach(heading => {
             if (heading.name === "Name" || heading.name === "Status") {
                 htmlString += "<td>" 
-                    + (row.name || `<button style='color: red' onclick='bookSlot("${room.name}", ${index})'>AVAILABLE - click to reserve</button>`) 
+                    + (row.name || `<button class="reserveButton" style='color: red' onclick='bookSlot("${room.name}", ${index})'>AVAILABLE - click to reserve</button>`) 
                     + "</td>"
             }
             else if (heading.name === "Time") {

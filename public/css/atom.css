@@ -1,3 +1,6 @@
+body, html {
+    overflow-x: hidden;
+}
 * {
     box-sizing: border-box;
 }
@@ -53,7 +56,7 @@ img.logo-atom {
     z-index: -1;
     bottom: -2px;
     height: 110%;
-    width: 110%;
+    width: 100%;
     background: linear-gradient(90deg, #fca09a, #fcccd3, #ffcc9d, #98ddad, #81d7ec, #a0aaed);
 }
 
