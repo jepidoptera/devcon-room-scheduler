@@ -148,6 +148,7 @@
             if (Object.keys(rooms).length > 1) {
                 // add another row of tab buttons if there are multiple rooms
                 $("#rooms")
+                    .append($("<div>").addClass("tabButton_container")
                     .append($("<button>")
                         .addClass("tabButton")
                         .text(room.shortName)
@@ -161,6 +162,7 @@
                         })
                         .addClass(roomIndex === 0 ? "bold" : "")
                     )
+                )
             }
 
             // for each day
@@ -189,6 +191,7 @@
                     // make a tab button for this day if one doesn't exist already
                     if ($(`#${dateString.split(" ").join("_")}.tabButton`).length === 0) {
                         $("#days")
+                        .append($("<div>").addClass("tabButton_container")
                             .append($("<button>")
                                 .addClass("tabButton")
                                 .attr("id", `${dateString.split(" ").join("_")}`)
@@ -203,6 +206,7 @@
                                 })
                                 .addClass(Object.keys(dayTables).length === 1 ? "bold" : "")
                             )
+                        )
                     }
                 }
                 dayTables[dateString].append(
