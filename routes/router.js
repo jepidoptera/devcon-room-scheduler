@@ -98,30 +98,42 @@ router.get("/meeting", (req, res) => {
             time_increment: 30,
             max_consecutive_slots: 2
         });
-    })
+})
 
-    router.post('/reserve', (req, res) => {
-        // console.log(JSON.stringify(req.body));
-        airTable.schedule({
-            ...req.body,
-            // turn them into correct data types
-            start_at: new Date(parseInt(req.body.start_at)).toISOString(),
-            end_at: new Date(parseInt(req.body.start_at) + parseInt(req.body.length) * 60000).toISOString(),
-            speakers: req.body.speakers 
-                ? req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase())
-                : undefined,
-        });
-    
-        // TODO: send confirmation email (purpose TBD)
-        let email = req.body.email;
-    
-        res.render("success", {
-            text: "Thank you for your submission.  You'll receive a confirmation email shortly.", 
-            redirect: `/${req.body.room.split(' ')[0].toLowerCase()}`
-        })
+router.post('/reserve', (req, res) => {
+    // console.log(JSON.stringify(req.body));
+    let response = airTable.schedule({
+        ...req.body,
+        // turn them into correct data types
+        start_at: new Date(parseInt(req.body.start_at)).toISOString(),
+        end_at: new Date(parseInt(req.body.start_at) + parseInt(req.body.length) * 60000).toISOString(),
+        speakers: req.body.speakers 
+            ? req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase())
+            : undefined,
     })
+    if (response.error) {
+        res.render("serverMessage", {
+            text: response.error
+        })
+        return;
+    }
+
+    // TODO: send confirmation email (purpose TBD)
+    let email = req.body.email;
+
+    res.render("serverMessage", {
+        text: "Thank you for your submission.  You'll receive a confirmation email shortly.", 
+        timeout: 1000,
+        redirect: `/${req.body.room.split(' ')[0].toLowerCase()}`
+    })
+})
     
-    
+router.get("/api/hash/:room", (req, res) => {
+    let hash = airTable.getHash(req.params.room);
+    console.log ('returning hash code: ', hash);
+    res.send(hash);
+})
+
 // router.get("/reset", (req, res) => {
 //     // reset database
 //     require("../scripts/seedDB");

@@ -82,6 +82,20 @@
     // {room1: {bookings: []}, room2: {bookings: []}}
 
     $(() => {
+        // to override caching, check with the server to see if anything has changed
+        Object.keys(rooms).forEach(roomName => {
+            jQuery.ajax({
+                url: `/api/hash/${roomName}`,
+                method: 'get',
+                cache: false
+            }).then(data => {
+                if (data !== localStorage.getItem(`cache_hash_${roomName}`)) {
+                    localStorage.setItem(`cache_hash_${roomName}`, data)
+                    // cache has changed, re-load for latest records
+                    window.location.href = window.location.href;
+                }
+            })
+        })
         $(".modalBox").hide();
 
         // split into columns for each room
