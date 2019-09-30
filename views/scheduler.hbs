@@ -258,7 +258,7 @@
         {{#each fields}}
             {{text}} <br> <input type="text" name="{{name}}" {{#if required}}required{{/if}} <br>
         {{/each}}
-        email: <br> <input type="email" name="email" required><br><br>
+        email: <br> <input type="email" name="email" required><br>
         <div class="numberInputLine">
             start: 
             <span class="numberInput">
@@ -266,15 +266,16 @@
                 <span class="numberInput_buttonContainer">
                     <div class="numberInput_button" id="timeUp"><span class="numberInput_button_text">▲</span></div>
                     <div class="numberInput_button" id="timeDown"><span class="numberInput_button_text">▼</span></div>
-                </sapn>
+                </span>
             </span>
-        </div> <br>
+            length:
+            <select name="length">
+            </select>
+            minutes
+        </div>
+        <br>
         <input type="text" style="display:none" name="start_at">
         <input type="text" style="display:none" name="room">
-        length:
-        <select name="length">
-        </select>
-        minutes <br>
         <div class="modalBox_buttonContainer">
             <button type="submit">submit</button>
             <button onclick='cancelSubmit(event)'>cancel</button>
@@ -307,7 +308,7 @@
             currentTime = Math.min(maxTime - $('select[name="length"]').val() * 60000, Math.max(currentTime + 60000 * minutes, minTime));
             updateTime();
             if (mousedown) {
-                changeTimeInterval = Math.max(87, changeTimeInterval * .75);
+                changeTimeInterval = Math.max(60, changeTimeInterval * .60);
                 mouseDownTimeout = setTimeout(() => changeTime(minutes), changeTimeInterval);
             }
         }

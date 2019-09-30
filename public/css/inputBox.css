@@ -20,7 +20,6 @@
 
 .modalBox button {
     display: inline-block;
-    margin: 0 20px;
 }
 
 .modalBox form {
@@ -30,8 +29,10 @@
 
 .modalBox_buttonContainer {
     width: Calc(100% - 40px);
-    text-align: center;
-    padding: 20px;
+    display: flex;
+    justify-content: space-evenly;
+    position: relative;
+    bottom: 0;
 }
 
 .modalBoxTitle {
@@ -51,6 +52,7 @@
     height: 20pt; 
     display: block; 
     position: relative;
+    margin: 8pt 0;
 }
 
 .numberInput {
@@ -59,6 +61,7 @@
     vertical-align: middle; 
     text-align: center;
     border: 1px solid gray;
+    margin-right: 20px;
 }
 
 .numberInput_text {
@@ -144,5 +147,9 @@
     }
     .numberInputLine {
         height: 7vw;
+        margin: 3.5vw 0;
+    }
+    .numberInput_button {
+        width: 7vw; 
     }
 }
