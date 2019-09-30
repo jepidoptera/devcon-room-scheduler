@@ -45,7 +45,7 @@ router.get('/amphitheater', (req, res) => {
     console.log('retrieving scheduler page...');
     let talks = airTable.getFromRoom("Amphitheater");
     res.render("scheduler", {
-        title: "Amphitheater Lightning Talks",
+        title: "Lightning Talks",
         rooms: ["Amphitheater"],
         bookings: talks.map(talk => {
 

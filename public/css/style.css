@@ -29,7 +29,7 @@ table.timeslots {
     font-weight: 100;
     padding: 0 10px;
     box-sizing: border-box;
-    width: Calc(100vw - 30px);
+    width: Calc(100% - 30px);
 }
 
 .columnTitle {
@@ -47,7 +47,11 @@ table.timeslots {
     font-weight: 700;
     margin: 10px 20px;
     text-rendering: optimizeLegibility;
-}
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;          /* Likely future */      
+  }
 
 .tabButton_row_container {
     margin: 20px;
@@ -130,19 +134,14 @@ a.room_link {
 }
 
 
-@media (max-width: 760px) {
-    table.timeslots {
-        display: block;
-        position: absolute;
-        margin-left: 0;
-        width: 100%;
-    }
+@media (max-width: 750px) {
     tr, td {
         padding: 8px;
     }
-    .pageTitle {
-        font-size: 7vw;
-        text-align: center;
+    .tabButton {
+        margin: 1.33vw;
+        padding: 1.33vw 2.66vw;
+        /* font-size: Calc(1vw + 6.5px); */
     }
 }
 
@@ -150,11 +149,13 @@ a.room_link {
     nav.header {
         margin-top: 0;
     }
-    .tabButton {
-        margin: 5px;
-        padding: 8px;
-    }
     .reserveButton, table.timeslots {
         font-size: 2.8vw;
+    }
+}
+
+@media (max-width: 457px) {
+    .pageTitle {
+        font-size: 7vw;
     }
 }
