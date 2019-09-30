@@ -2,7 +2,12 @@ const Airtable = require('airtable');
 const base = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE);
 const base2 = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE_2);
 
-let rooms_cache = {};
+let rooms_cache = {
+    add: (record) => {
+        rooms_cache[record.id] = {name: record.get("Name")};
+        rooms_cache[record.get("Name")] = {id: record.id};
+    }
+};
 let speakers_cache = {add: (record) => {
     speakers_cache[record.id] = {
         name: record.get("Name"),
@@ -24,8 +29,7 @@ function getRooms(callback) {
 
         records.forEach(function(record) {
             // cross-reference these things
-            rooms_cache[record.id] = {name: record.get("Name")};
-            rooms_cache[record.get("Name")] = {id: record.id};
+            rooms_cache.add(record);
         });
     
         // To fetch the next page of records, call `fetchNextPage`.
@@ -101,7 +105,8 @@ function getTalks (callback) {
                     speakers: speakerIDs 
                         ? speakerIDs.map(id => speakers_cache[id].name)
                         : [], 
-                    room: rooms_cache[record.get('Room')].name
+                    room: rooms_cache[record.get('Room')].name,
+                    id: record.id
                 });
             }
         }
@@ -139,7 +144,8 @@ function getMeetings(callback) {
                     start_at: record.get('Start at'), 
                     end_at: record.get('End at'), 
                     email: record.get('Email'),
-                    room: record.get('Room')
+                    room: record.get('Room'),
+                    id: record.id
                 }
                 // console.log('found meeting: ', meeting)
                 // just put it in the same array with "talks" for ease of use
@@ -174,10 +180,40 @@ const API = {
         return filterTalks;
     },
 
+    checkTimeConflicts: (start_at, end_at, room) => {
+        startTime = new Date(start_at).getTime();
+        endTime = new Date(end_at).getTime();
+        console.log ('checking schedule between: ', start_at, `(${startTime}) &`, end_at, `(${endTime})`)
+        let conflict = [];
+        talks_cache.forEach(talk => {
+            if (talk.room === room) {
+                if (!talk.startTime) talk.startTime = new Date(talk.start_at).getTime();
+                if (!talk.endTime) talk.endTime = new Date(talk.end_at).getTime();
+                if ((startTime >= talk.startTime && startTime < talk.endTime)
+                    || (endTime > talk.startTime && endTime <= talk.endTime)
+                    || (startTime < talk.startTime && endTime > talk.endTime)) {
+                    // conflict
+                        conflict.push(talk);
+                }
+                console.log('checking against: ', talk);
+            }
+        })
+        if (conflict.length > 0) {
+            console.log(`${start_at} - ${end_at} conflicts with: `, conflict);
+            return conflict;
+        }
+        else return null;
+    },
+
     schedule: (deets) => {
         console.log('scheduling: ', deets);
         // unpack those details
         let {name, start_at, end_at, email, description, speakers, room} = deets;
+
+        // make sure there are no scheduling conflicts
+        if (API.checkTimeConflicts(start_at, end_at, room)) {
+            return { error: "Cannot schedule that time slot, as it conflicts with an existing schedule."};
+        }
 
         // create entries for speakers if none exist
         let missingSpeakers = speakers ? speakers.filter(speaker => !speakers_cache[speaker]) : [];
@@ -210,7 +246,7 @@ const API = {
         let usingBase = base('Talks');
         let record = {};
 
-        console.log('room name: ', room, ', cache: ', rooms_cache);
+        // console.log('room name: ', room, ', cache: ', rooms_cache);
         if (!["Meeting Room 1", "Meeting Room 2"].includes(room)) {
             record = {
                 "fields": {
@@ -241,7 +277,6 @@ const API = {
         usingBase.create([ record ], function(err, records) {
             if (err) {
                 console.error(err);
-                return;
             }
             // let it show up immediately
             talks_cache.push(deets);
@@ -249,6 +284,13 @@ const API = {
                 console.log('added talk:', record.get('Name (english)'));
             });
         })
+        return {};
+    },
+    getHash: (roomName) => {
+        // get some kind of hash code, good enough to see if anything has changed
+        let hash = API.getFromRoom(roomName).reduce((talk, hash) => hash.talk.id, 0);
+        console.log (hash);
+        return hash;
     }
 }
 
