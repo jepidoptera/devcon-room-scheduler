@@ -140,6 +140,14 @@ router.post('/reserve', (req, res) => {
     // console.log("emailing: ", message);
     email.send(message);
 
+    // send one to devcon-rooms@ethereum.org so admin can see what's up
+    email.send({
+        to: "devcon-rooms@ethereum.org",
+        from: "devcon_room_scheduler@devcon.org",
+        subject: "new schedule confirmation",
+        text: `email: ${req.body.email} \nticket#: ${req.body.ticket} \nroom:${req.body.room} \ndate: ${date} \ntimespan: ${timespan},`
+    })
+
     res.render("serverMessage", {
         text: "Thank you for your submission.  You'll receive a confirmation email shortly.", 
         timeout: 1000,
