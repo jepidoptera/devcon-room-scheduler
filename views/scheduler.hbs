@@ -89,8 +89,8 @@
                 method: 'get',
                 cache: false
             }).then(data => {
-                if (data !== localStorage.getItem(`cache_hash_${roomName}`)) {
-                    localStorage.setItem(`cache_hash_${roomName}`, data)
+                if (data.hash !== localStorage.getItem(`cache_hash_${roomName}`)) {
+                    localStorage.setItem(`cache_hash_${roomName}`, data.hash)
                     // cache has changed, re-load for latest records
                     window.location.href = window.location.href;
                 }
