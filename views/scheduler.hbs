@@ -40,6 +40,7 @@
 </table> --}}
 
 <script>
+    // jshint multistr: true
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     let firstDay = "{{first_day}}";
@@ -51,8 +52,8 @@
     let roomSelected = '';
 
     let bookings = [ {{#each bookings}} {
-        name: '{{name}}', 
-        description: '{{description}}', 
+        name: `{{name}}`, 
+        description: `{{description}}`, 
         room: '{{room}}', 
         start_at: '{{start_at}}', 
         end_at: '{{end_at}}', 
