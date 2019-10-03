@@ -145,7 +145,14 @@ router.post('/reserve', (req, res) => {
         to: "devcon-rooms@ethereum.org",
         from: "devcon_room_scheduler@devcon.org",
         subject: "new schedule confirmation",
-        text: `email: ${req.body.email} \nticket#: ${req.body.ticket} \nroom:${req.body.room} \ndate: ${date} \ntimespan: ${timespan},`
+        html: `email: ${req.body.email} <br>
+            ticket#: ${req.body.ticket} <br> 
+            room:${req.body.room} <br> 
+            date: ${date} <br> 
+            timespan: ${timespan} <br>
+            ${req.body.name ? "name: " + req.body.name + "<br>" : ""} 
+            ${req.body.description ? "description: " + req.body.description + "<br>" : ""}
+            ${req.body.speakers ? "speakers: " + req.body.speakers + "<br>" : ""}`
     })
 
     res.render("serverMessage", {
