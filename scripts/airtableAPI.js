@@ -1,6 +1,6 @@
 const Airtable = require('airtable');
-const base = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE);
-const base2 = new Airtable({apiKey: process.env.APIKEY}).base(process.env.AIRTABLE_BASE_2);
+const base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
+const base2 = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE_2);
 
 let rooms_cache = {
     add: (record) => {
@@ -183,7 +183,7 @@ const API = {
     checkTimeConflicts: (start_at, end_at, room) => {
         startTime = new Date(start_at).getTime();
         endTime = new Date(end_at).getTime();
-        console.log ('checking schedule between: ', start_at, `(${startTime}) &`, end_at, `(${endTime})`)
+        // console.log ('checking schedule between: ', start_at, `(${startTime}) &`, end_at, `(${endTime})`)
         let conflict = [];
         talks_cache.forEach(talk => {
             if (talk.room === room) {
@@ -195,7 +195,7 @@ const API = {
                     // conflict
                         conflict.push(talk);
                 }
-                console.log('checking against: ', talk);
+                // console.log('checking against: ', talk);
             }
         })
         if (conflict.length > 0) {
@@ -279,20 +279,20 @@ const API = {
                 console.error(err);
             }
             // let it show up immediately
-            talks_cache.push(deets);
             records.forEach(function (record) {
+                talks_cache.push({...deets, id: record.id});
                 console.log('added talk:', record.get('Name (english)'));
             });
         })
         return {};
     },
     getHash: (roomName) => {
-        console.log('getting hash for: ');
+        // console.log('getting hash for: ');
         // get some kind of hash code, good enough to see if anything has changed
         let relevant_rooms = API.getFromRoom(roomName);
-        console.log(relevant_rooms);
+        // console.log(relevant_rooms);
         hash = relevant_rooms.reduce((hash, talk) => {return hash + talk.id}, 0);
-        console.log ("===", hash);
+        // console.log ("===", hash);
         return hash;
     }
 }
