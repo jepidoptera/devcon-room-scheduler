@@ -3,8 +3,12 @@ const mongoose = require('mongoose');
 
 const db = require("../models");
 const airTable = require('../scripts/airtableAPI');
+const email = require('../scripts/sendgridAPI')
 
 const router = express.Router();
+
+const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'November', 'December']
 
 mongoose.connect(
 process.env.MONGODB_URI ||
@@ -102,11 +106,13 @@ router.get("/meeting", (req, res) => {
 
 router.post('/reserve', (req, res) => {
     // console.log(JSON.stringify(req.body));
+    let timeStart = new Date(parseInt(req.body.start_at));
+    let timeEnd = new Date(parseInt(req.body.start_at) + parseInt(req.body.length) * 60000);
     let response = airTable.schedule({
         ...req.body,
         // turn them into correct data types
-        start_at: new Date(parseInt(req.body.start_at)).toISOString(),
-        end_at: new Date(parseInt(req.body.start_at) + parseInt(req.body.length) * 60000).toISOString(),
+        start_at: timeStart.toISOString(),
+        end_at: timeEnd.toISOString(),
         speakers: req.body.speakers 
             ? req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase())
             : undefined,
@@ -118,8 +124,21 @@ router.post('/reserve', (req, res) => {
         return;
     }
 
-    // TODO: send confirmation email (purpose TBD)
-    let email = req.body.email;
+    // send confirmation email
+    let date = daysOfWeek[timeStart.getUTCDay()] + timeStart.toGMTString().slice(3, -13);
+    let timespan = `${timeStart.getUTCHours()}:${timeStart.getUTCMinutes().toString().padStart(2, "0")}-`
+        + `${timeEnd.getUTCHours()}:${timeEnd.getUTCMinutes().toString().padStart(2, "0")}`;
+    let message = {
+        to: req.body.email,
+        from: "noreply@devcon.org",
+        subject: "scheduling confirmation",
+        text: (req.body.room === "Amphitheater"
+            ? `You’re all set! You’ve scheduled a lightning talk for ${date}, ${timespan}.  There will be others scheduled directly before and after yours, so please be on time and ready to go!`
+            : `You’re all set! You’ve booked ${req.body.room} for ${date}, ${timespan}. There will be meetings directly before and after yours, so please be respectful of others’ time by arriving on time and vacating the room promptly when your time is up.`
+        )
+    }
+    // console.log("emailing: ", message);
+    email.send(message);
 
     res.render("serverMessage", {
         text: "Thank you for your submission.  You'll receive a confirmation email shortly.", 
@@ -130,8 +149,8 @@ router.post('/reserve', (req, res) => {
     
 router.get("/api/hash/:room", (req, res) => {
     let hash = airTable.getHash(req.params.room);
-    console.log ('returning hash code: ', hash);
-    res.send(hash);
+    // console.log ('returning hash code: ', hash);
+    res.json({hash: hash});
 })
 
 // router.get("/reset", (req, res) => {
@@ -140,7 +159,6 @@ router.get("/api/hash/:room", (req, res) => {
 //     res.send("reset complete ;)");
 // })
 
-const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function timeFormat(date) {
     return daysOfWeek[date.getDay()] 
