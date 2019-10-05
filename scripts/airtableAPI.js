@@ -291,7 +291,7 @@ const API = {
         // get some kind of hash code, good enough to see if anything has changed
         let relevant_rooms = API.getFromRoom(roomName);
         // console.log(relevant_rooms);
-        hash = relevant_rooms.reduce((hash, talk) => {return hash + talk.id}, 0);
+        hash = "#" + relevant_rooms.reduce((hash, talk) => {return hash + talk.id}, 0);
         // console.log ("===", hash);
         return hash;
     }
