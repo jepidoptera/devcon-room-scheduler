@@ -8,7 +8,6 @@ const email = require('../scripts/sendgridAPI')
 const router = express.Router();
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const monthsOfYear = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'November', 'December']
 
 mongoose.connect(
 process.env.MONGODB_URI ||
@@ -48,6 +47,7 @@ router.get("/", (req, res) => {
 router.get('/amphitheater', (req, res) => {
     console.log('retrieving scheduler page...');
     let talks = airTable.getFromRoom("Amphitheater");
+    res.header("Cache-control", "no-store");
     res.render("scheduler", {
         title: "Lightning Talks",
         rooms: ["Amphitheater"],
@@ -60,7 +60,7 @@ router.get('/amphitheater', (req, res) => {
         }),
         first_day: "10-08",
         last_day: "10-11",
-        first_talk: "10:00",
+        first_talk: "09:00",
         last_talk: "17:00",
         headings: [
             {name:"name", width: 20},
@@ -73,8 +73,8 @@ router.get('/amphitheater', (req, res) => {
             {text:"description", name: "description"},
             {text: "speaker(s): (separate names with commas)", name: "speakers", required: true}
         ],
-        time_increment: 5,
-        max_consecutive_slots: 2
+        time_increment: 30,
+        max_consecutive_slots: 0
     });
 })
 
@@ -82,6 +82,7 @@ router.get("/meeting", (req, res) => {
     let meetings = airTable.getFromRoom("Meeting Room 1")
         .concat(airTable.getFromRoom("Meeting Room 2"));
         // console.log(meetings);
+        res.header("Cache-control", "no-store");
         res.render("scheduler", {
             title: "Meetings",
             rooms: ["Meeting Room 1", "Meeting Room 2"],
@@ -105,10 +106,10 @@ router.get("/meeting", (req, res) => {
 })
 
 router.post('/reserve', (req, res) => {
-    // console.log(JSON.stringify(req.body));
+    console.log(JSON.stringify(req.body));
     let timeStart = new Date(parseInt(req.body.start_at));
     let timeEnd = new Date(parseInt(req.body.start_at) + parseInt(req.body.length) * 60000);
-    let response = airTable.schedule({
+    airTable.schedule({
         ...req.body,
         // turn them into correct data types
         start_at: timeStart.toISOString(),
@@ -116,49 +117,50 @@ router.post('/reserve', (req, res) => {
         speakers: req.body.speakers 
             ? req.body.speakers.split(',').map(speaker => speaker.trim().toLowerCase())
             : undefined,
-    })
-    if (response.error) {
-        res.render("serverMessage", {
-            text: response.error
+    }, function (response) {
+        if (response.error) {
+            res.render("serverMessage", {
+                text: response.error
+            })
+            return;
+        }
+
+        // send confirmation email
+        let date = daysOfWeek[timeStart.getUTCDay()] + timeStart.toGMTString().slice(3, -13);
+        let timespan = `${timeStart.getUTCHours()}:${timeStart.getUTCMinutes().toString().padStart(2, "0")}-`
+            + `${timeEnd.getUTCHours()}:${timeEnd.getUTCMinutes().toString().padStart(2, "0")}`;
+        let message = {
+            to: req.body.email,
+            from: "noreply@devcon.org",
+            subject: "scheduling confirmation",
+            text: (req.body.room === "Amphitheater"
+                ? `You’re all set! You’ve scheduled a lightning talk for ${date}, ${timespan}.  There will be others scheduled directly before and after yours, so please be on time and ready to go!`
+                : `You’re all set! You’ve booked ${req.body.room} for ${date}, ${timespan}. There will be meetings directly before and after yours, so please be respectful of others’ time by arriving on time and vacating the room promptly when your time is up.`
+            )
+        }
+        // console.log("emailing: ", message);
+        email.send(message);
+
+        // send one to devcon-rooms@ethereum.org so admin can see what's up
+        email.send({
+            to: "devcon-rooms@ethereum.org",
+            from: "devcon_room_scheduler@devcon.org",
+            subject: "new schedule confirmation",
+            html: `email: ${req.body.email} <br>
+        ticket#: ${req.body.ticket} <br> 
+        room:${req.body.room} <br> 
+        date: ${date} <br> 
+        timespan: ${timespan} <br>
+        ${req.body.name ? "name: " + req.body.name + "<br>" : ""} 
+        ${req.body.description ? "description: " + req.body.description + "<br>" : ""}
+        ${req.body.speakers ? "speakers: " + req.body.speakers + "<br>" : ""}`
         })
-        return;
-    }
 
-    // send confirmation email
-    let date = daysOfWeek[timeStart.getUTCDay()] + timeStart.toGMTString().slice(3, -13);
-    let timespan = `${timeStart.getUTCHours()}:${timeStart.getUTCMinutes().toString().padStart(2, "0")}-`
-        + `${timeEnd.getUTCHours()}:${timeEnd.getUTCMinutes().toString().padStart(2, "0")}`;
-    let message = {
-        to: req.body.email,
-        from: "noreply@devcon.org",
-        subject: "scheduling confirmation",
-        text: (req.body.room === "Amphitheater"
-            ? `You’re all set! You’ve scheduled a lightning talk for ${date}, ${timespan}.  There will be others scheduled directly before and after yours, so please be on time and ready to go!`
-            : `You’re all set! You’ve booked ${req.body.room} for ${date}, ${timespan}. There will be meetings directly before and after yours, so please be respectful of others’ time by arriving on time and vacating the room promptly when your time is up.`
-        )
-    }
-    // console.log("emailing: ", message);
-    email.send(message);
-
-    // send one to devcon-rooms@ethereum.org so admin can see what's up
-    email.send({
-        to: "devcon-rooms@ethereum.org",
-        from: "devcon_room_scheduler@devcon.org",
-        subject: "new schedule confirmation",
-        html: `email: ${req.body.email} <br>
-            ticket#: ${req.body.ticket} <br> 
-            room:${req.body.room} <br> 
-            date: ${date} <br> 
-            timespan: ${timespan} <br>
-            ${req.body.name ? "name: " + req.body.name + "<br>" : ""} 
-            ${req.body.description ? "description: " + req.body.description + "<br>" : ""}
-            ${req.body.speakers ? "speakers: " + req.body.speakers + "<br>" : ""}`
-    })
-
-    res.render("serverMessage", {
-        text: "Thank you for your submission.  You'll receive a confirmation email shortly.", 
-        timeout: 1000,
-        redirect: `/${req.body.room.split(' ')[0].toLowerCase()}`
+        res.render("serverMessage", {
+            text: "Thank you for your submission.  You'll receive a confirmation email shortly.",
+            timeout: 1000,
+            redirect: `/${req.body.room.split(' ')[0].toLowerCase()}`
+        })
     })
 })
     
