@@ -28,4 +28,4 @@ Routes/router.js manages routes.  Each endpoint, such as /amphitheater, renders 
 ```
 The page then constructs a table listing all the events in each room on each day, with buttons to navigate between rooms/days, and buttons to schedule any time slots which are open.
 
-I built this with Jquery/Handlebars.  I'll admit that React might have been a better choice, but ¯\_(ツ)_/¯
+I built this with Jquery/Handlebars.  I'll admit that React might have been a better choice, but ¯\\\_(ツ)\_/¯
