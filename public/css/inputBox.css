@@ -102,7 +102,7 @@
     line-height: normal;
 }
 
-@media (max-aspect-ratio: 1/1) {
+@media (max-width: 760px) {
     .modalBox {
         width: 100vw;
         height: 100vh;
@@ -110,6 +110,7 @@
         line-height: 7vw;
         box-sizing: content-box;
         margin: 0;
+        overflow-y: scroll;
     }
     .modalBoxTitle {
         font-size: 8vw;
@@ -126,7 +127,7 @@
         margin: 6vw;
     }
     .modalBox_buttonContainer {
-        position: absolute;
+        position: relative;
         left: 0;
         bottom: 0;
     }
