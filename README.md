@@ -2,6 +2,7 @@
 A web app for flexible scheduling.
 
 Routes/router.js manages routes.  Each endpoint, such as /amphitheater, renders the same page but passes it a different object.  The object looks like so:
+```
 {
         title: "Lightning Talks",
         rooms: ["Amphitheater"],
@@ -24,7 +25,7 @@ Routes/router.js manages routes.  Each endpoint, such as /amphitheater, renders 
         time_increment: 30,
         max_consecutive_slots: 0
 }
-
+```
 The page then constructs a table listing all the events in each room on each day, with buttons to navigate between rooms/days, and buttons to schedule any time slots which are open.
 
 I built this with Jquery/Handlebars.  I'll admit that React might have been a better choice, but ¯\_(ツ)_/¯
