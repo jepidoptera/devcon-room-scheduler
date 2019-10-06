@@ -46,6 +46,7 @@ function getRooms(callback) {
 
 function getSpeakers(callback) {
     // re-load speakers
+    console.log('loading speakers');
     base('Speakers').select({})
     .eachPage(function page(records, fetchNextPage) {
         // This function (`page`) will get called for each page of records.
@@ -74,6 +75,7 @@ function getSpeakers(callback) {
 function getTalks (callback) {
     let pages = 1;
     let newTalks = [];
+    console.log("loading talks");
 
     base('Talks').select({sort: [{field: "Start at", direction: "asc"}]})
     .eachPage(function page(records, fetchNextPage) {
@@ -123,8 +125,8 @@ function getTalks (callback) {
         // get meetings too
         getMeetings(() => {
             if (err) { console.error(err); return; }
+            console.log("********************* loaded talks *********************");
             if (callback) {
-                console.log('returning talks to server...')
                 callback(talks_cache);
             }
         })
@@ -205,7 +207,7 @@ const API = {
         else return null;
     },
 
-    schedule: (deets) => {
+    schedule: (deets, callback) => {
         console.log('scheduling: ', deets);
         // unpack those details
         let {name, start_at, end_at, email, description, speakers, room} = deets;
@@ -237,7 +239,7 @@ const API = {
                         speakers_cache.add(record);
                         console.log(record.get("Name"));
                     });
-                    API.schedule(deets);
+                    API.schedule(deets, callback);
                 }
             )
             // don't do anything until the speakers are added
@@ -283,6 +285,7 @@ const API = {
                 talks_cache.push({...deets, id: record.id});
                 console.log('added talk:', record.get('Name (english)'));
             });
+            if (callback) callback({records: records, error: err});
         })
         return {};
     },
