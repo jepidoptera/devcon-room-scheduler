@@ -40,7 +40,7 @@
 </table> --}}
 
 <script>
-    // jshint multistr: true
+    // unpack data from handlebars
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     let firstDay = "{{first_day}}";
@@ -65,7 +65,7 @@
     {{/each}}]
 
     let time_increment = {{time_increment}};
-    let length_options = Array({{max_consecutive_slots}}).fill(0).map((value, i) => (i + 1) * time_increment);
+    let length_options = Array({{max_consecutive_slots}} || 1).fill(0).map((value, i) => (i + 1) * time_increment);
 
     console.log(bookings);
     bookings = bookings
@@ -83,20 +83,6 @@
     // {room1: {bookings: []}, room2: {bookings: []}}
 
     $(() => {
-        // to override caching, check with the server to see if anything has changed
-        Object.keys(rooms).forEach(roomName => {
-            jQuery.ajax({
-                url: `/api/hash/${roomName}`,
-                method: 'get',
-                cache: false
-            }).then(data => {
-                if (data.hash !== localStorage.getItem(`cache_hash_${roomName}`)) {
-                    localStorage.setItem(`cache_hash_${roomName}`, data.hash)
-                    // cache has changed, re-load for latest records
-                    window.location.href = window.location.href;
-                }
-            })
-        })
         $(".modalBox").hide();
 
         // split into columns for each room
@@ -264,7 +250,6 @@
     }
 </script>
 
-{{!-- note to self: should have used react for all this --}}
 <link rel="stylesheet" href="css/inputBox.css">
 
 <div class="modalBox">
@@ -284,10 +269,13 @@
                     <div class="numberInput_button" id="timeDown"><span class="numberInput_button_text">▼</span></div>
                 </span>
             </span>
-            length:
-            <select name="length">
-            </select>
-            minutes
+            
+            <span class="lengthInput" {{#unless max_consecutive_slots}}style="display: none"{{/unless}}>
+                length:
+                <select name="length">
+                </select>
+                minutes
+            </span>
         </div>
         <br>
         <input type="text" style="display:none" name="start_at">
@@ -313,9 +301,23 @@
 
 
         // disable longer length options when there is not enough time available
-        length_options.forEach(option => {
+        if (length_options.length > 1) {length_options.forEach(option => {
             $(`option[value="${option}"]`).attr('disabled', (maxTime - minTime < 60000 * option))
-        })
+        })}
+        else {
+            // if there is only one length option, but there is a slot which is shorter than that...
+            // allow it to be booked anyway (I think this is how it should work?)
+            if (maxTime - minTime < 60000 * length_options[0]) {
+                // shorten the length to match the timeslot
+                let timeAvailable = (maxTime - minTime) / 60000;
+                $("select[name='length']")
+                    .append(`<option value="${timeAvailable}">`)
+                    .val(timeAvailable);
+            }
+            else {
+                $("select[name='length']").val(length_options[0]);
+            }
+        }
 
         // invisibly set room name
         $('input[name="room"').val(room);
@@ -324,6 +326,7 @@
             currentTime = Math.min(maxTime - $('select[name="length"]').val() * 60000, Math.max(currentTime + 60000 * minutes, minTime));
             updateTime();
             if (mousedown) {
+                // accelerate change rate as you hold the mouse down
                 changeTimeInterval = Math.max(60, changeTimeInterval * .60);
                 mouseDownTimeout = setTimeout(() => changeTime(minutes), changeTimeInterval);
             }
