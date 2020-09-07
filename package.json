@@ -11,7 +11,7 @@
     "dotenv": "^8.1.0",
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
-    "handlebars": "^4.3.0",
+    "handlebars": "^4.5.3",
     "moment": "^2.24.0",
     "mongoose": "^5.7.1",
     "node-scrypt": "0.0.1",
