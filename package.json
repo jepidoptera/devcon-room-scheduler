@@ -12,7 +12,7 @@
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
     "handlebars": "^4.3.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "mongoose": "^5.7.1",
     "node-scrypt": "0.0.1",
     "react": "^16.9.0",
